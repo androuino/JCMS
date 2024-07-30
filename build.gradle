@@ -40,20 +40,22 @@ tasks.register('jni', Exec) {
 	def libPrefix = 'lib'
 	def libSuffix = '.so'
 	def compilerFlags = '-fPIC'
-	def compilerInclude = '-I' + jdk_home + '/java-11-openjdk-amd64/include'
+	def compilerInclude = '-I' + jdk_home + '/include'
 	def compilerInclude2 = ''
 	if (osName.contains('linux')) {
 		libOs = 'linux'
-		compilerInclude2 = '-I' + jdk_home + '/java-11-openjdk-amd64/include/linux'
+		compilerInclude2 = '-I' + jdk_home + '/include/linux'
 	} else if (osName.contains("windows")) {
 		libOs = "windows";
-		libPrefix = "";
+		libPrefix = "libwin";
 		libSuffix = ".dll";
 		compilerFlags = '-Wl,--add-stdcall-alias'
 		compilerInclude2 = '-I' + jdk_home + '/include/win32'
 	} else if (osName.contains("mac") || osName.contains("darwin")) {
 		libOs = "mac";
-		compilerInclude2 = '-I' + jdk_home + '/include/darwin'
+		libPrefix = 'libmac'
+		compilerInclude = '-I' + jdk_home + '/Home/include'
+		compilerInclude2 = '-I' + jdk_home + '/Home/include/darwin'
 	}
 
 	ext.libMainDir = 'src/main/resources/com/gmail/etordera/jcms/lib'
@@ -66,6 +68,9 @@ tasks.register('jni', Exec) {
 	doFirst {
 		new File(libDir).mkdirs()
 	}
+
+	println "compilerInclude: ${compilerInclude}"
+	println "compilerInclude2: ${compilerInclude2}"
 
 	executable 'g++'
 	args compilerFlags

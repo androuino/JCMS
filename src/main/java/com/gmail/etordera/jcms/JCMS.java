@@ -34,7 +34,9 @@ public class JCMS {
 	/** Version number for JCMS library. */
 	private static final String VERSION = "1.0";
 	/** Name of system property for native library path. */
-	private static final String PROPERTY_LIBRARY_PATH = "libjcms.so";
+	private static final String LINUX_NATIVE_LIBRARY = "libjcms.so";
+	private static final String MAC_NATIVE_LIBRARY = "libmacjcms.so";
+	private static final String WINDOWS_NATIVE_LIBRARY = "libwinjcms.so";
 	/** Path to temp dir where native libraries are extracted to during runtime */
 	private static String m_tempDir = null;
 
@@ -42,13 +44,21 @@ public class JCMS {
 	static {
 		try {
 			// Try to load library in current library path
-			System.loadLibrary(PROPERTY_LIBRARY_PATH);
-			
+			String osName = System.getProperty("os.name").toLowerCase();
+			if (osName.contains("windows")) {
+				System.loadLibrary(WINDOWS_NATIVE_LIBRARY);
+			} else if (osName.contains("mac")) {
+				System.loadLibrary(MAC_NATIVE_LIBRARY);
+			} else if (osName.contains("linux")) {
+				System.loadLibrary(LINUX_NATIVE_LIBRARY);
+			} else {
+				System.loadLibrary(LINUX_NATIVE_LIBRARY);
+			}
 		} catch (UnsatisfiedLinkError e) {
 
 			// Detect custom path for extracting native libraries
 			Path libDir = null;
-			String libraryPath = System.getProperty(PROPERTY_LIBRARY_PATH);
+			String libraryPath = System.getProperty(LINUX_NATIVE_LIBRARY);
 			if (libraryPath != null) {
 				libDir = Paths.get(libraryPath);
 				if (!Files.isDirectory(libDir)) {
@@ -102,7 +112,6 @@ public class JCMS {
 				if (!loadSharedObjects(basePath, new LinkedList<String>(Arrays.asList(libs)), libDir, tempFiles)) {
 					throw new UnsatisfiedLinkError("Failed to load JCMS native libraries.");
 				}
-
 			} catch (IOException ioex) {
 				throw new UnsatisfiedLinkError("Failed to load JCMS native library ("+ioex.getMessage()+")");
 			}			
