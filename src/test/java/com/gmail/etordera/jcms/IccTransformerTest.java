@@ -135,11 +135,11 @@ public class IccTransformerTest {
 				System.out.print("Transform " + in.getName() + " to " + out.getName() + "...");
 				
 				ImageMetadata md = ImageMetadata.getInstance(in);
-				ICC_Profile profile = md.getIccProfile();
+				//ICC_Profile profile = md.getIccProfile();
 				
 				BufferedImage image = ImageIO.read(in);
 				assertNotNull("Unable to load image: " + in.getAbsolutePath(), image);
-				image = transformer.transform(image, profile == null ? srgb.getICC_Profile() : profile);
+				image = transformer.transform(image, srgb.getICC_Profile());
 
 				switch (md.getImageType()) {
 					case PNG:
