@@ -82,7 +82,7 @@ JNIEXPORT void JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsDoTransform
 	return;
 }
 
-JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsCreate_sRGBProfile
+JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsCreate_1sRGBProfile
   (JNIEnv *env, jclass cls) {
 	cmsHPROFILE hProfile = cmsCreate_sRGBProfile();
 	return (jlong) hProfile;
