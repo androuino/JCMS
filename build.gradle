@@ -54,6 +54,7 @@ tasks.register('jni', Exec) {
 	} else if (osName.contains("mac") || osName.contains("darwin")) {
 		libOs = "mac";
 		libPrefix = 'libmac'
+		libSuffix = '.dylib'
 		compilerInclude = '-I' + jdk_home + '/Home/include'
 		compilerInclude2 = '-I' + jdk_home + '/Home/include/darwin'
 	}
