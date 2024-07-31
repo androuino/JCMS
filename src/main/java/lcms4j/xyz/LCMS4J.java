@@ -112,10 +112,9 @@ public class LCMS4J {
 									System.out.println("IOException: "+e.getMessage());
 								}
 							}
-						});					
+						});
 					}
 				}
-							
 				// Try to load libraries from classpath resources
 				if (!loadSharedObjects(basePath, new LinkedList<>(Arrays.asList(libs)), libDir, tempFiles)) {
 					throw new UnsatisfiedLinkError("Failed to load LCMS4J native libraries.");
