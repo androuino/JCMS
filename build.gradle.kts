@@ -47,6 +47,9 @@ data class CompilerConfig(
 	val compilerInclude2: String
 )
 
+var libArch = ""
+var libOS = ""
+
 // Task to compile JNI shared object
 tasks.register<Exec>("jni") {
 	description = "Compiles JNI shared object which will allow access to native libraries."
@@ -56,7 +59,7 @@ tasks.register<Exec>("jni") {
 	println("JDK Home: $jdkHome")
 
 	val osArch = System.getProperty("os.arch")
-	val libArch = if (osArch.contains("64")) "64" else "32"
+	libArch = if (osArch.contains("64")) "64" else "32"
 
 	val osName = System.getProperty("os.name").toLowerCase()
 	val config = when {
@@ -89,6 +92,7 @@ tasks.register<Exec>("jni") {
 
 	val (libOs, libPrefix, libSuffix, compilerFlags, compilerInclude, compilerInclude2) = config
 
+	libOS = libOs
 	val libMainDir = "src/main/resources/lcms4j/xyz/lib"
 	val libDir = "$libMainDir/$libOs$libArch"
 	val libPath = "$libDir/$libPrefix" + "lcms4j" + libSuffix
@@ -136,5 +140,9 @@ tasks.named<Delete>("clean") {
 
 tasks.test {
 	// Set the java.library.path system property to the directory where the .so file is generated
-	systemProperty("java.library.path", file("src/main/resources/lcms4j/xyz/lib/linux64").absolutePath)
+	systemProperty("java.library.path", file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").absolutePath)
+	//println("Native library path: " + file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").absolutePath)
+	if (file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").exists()) {
+		println("Native library path exists!")
+	}
 }

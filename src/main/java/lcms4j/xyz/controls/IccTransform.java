@@ -22,11 +22,11 @@ public class IccTransform {
 	 * to assure proper freeing of native resources.
 	 * 
 	 * @param srcProfile Source ICC profile for the color transformation
-	 * @param inputFormat Format of the input pixel data for the color transformation operations (JCMS.TYPE_*).
+	 * @param inputFormat Format of the input pixel data for the color transformation operations (LCMS4J.TYPE_*).
 	 * @param dstProfile Destination ICC profile for the color transformation
-	 * @param outputFormat Format of the output pixel data for the color transformation operations  (JCMS.TYPE_*).
-	 * @param intent Rendering intent for the color transformation (JCMS.INTENT_*).
-	 * @param flags Flags that modify transformation algorithm (JCMS.CMSFLAGS_*) 
+	 * @param outputFormat Format of the output pixel data for the color transformation operations  (LCMS4J.TYPE_*).
+	 * @param intent Rendering intent for the color transformation (LCMS4J.INTENT_*).
+	 * @param flags Flags that modify transformation algorithm (LCMS4J.CMSFLAGS_*)
 	 * @throws LCMS4JException If not able to create native Icc Transform object
 	 */
 	public IccTransform(IccProfile srcProfile, int inputFormat, IccProfile dstProfile, int outputFormat, int intent, int flags) throws LCMS4JException {

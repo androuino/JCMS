@@ -94,15 +94,16 @@ public class IccProfile {
 	
 	/**
 	 * Loads an ICC Profile from a resource.<br>
-	 * Resources will we looked for in the <code>com.gmail.etordera.JCMS.iccprofiles</code> package.
+	 * Resources will we looked for in the <code>com.gmail.etordera.LCMS4J.iccprofiles</code> package.
 	 * 
 	 * @param filename Filename of the resource to load as ICC profile.
 	 * @throws LCMS4JException if unable to load profile from provided resource name.
 	 */
 	private void loadFromResource(String filename) throws LCMS4JException {
-		File file = new File("/lcms4j/xyz/iccprofiles", filename);
+		File iccFile = new File("src/main/resources/lcms4j/xyz/iccprofiles");
+		File file = new File(iccFile.getPath(), filename);
 		if (file.exists()) {
-			System.out.println("File exists!");
+			System.out.printf("ICC %s exists!", filename);
 		}
 		InputStream is = IccProfile.class.getResourceAsStream("/lcms4j/xyz/iccprofiles/" + filename);
 		if (is == null) {

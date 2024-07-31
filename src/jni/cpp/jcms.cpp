@@ -82,7 +82,7 @@ JNIEXPORT void JNICALL Java_lcms4j_xyz_LCMS4J_cmsDoTransform
 	return;
 }
 
-JNIEXPORT jlong JNICALL Java_lcms4j_xyz_LCMS4J_JCMS_cmsCreate_1sRGBProfile
+JNIEXPORT jlong JNICALL Java_lcms4j_xyz_LCMS4J_cmsCreate_1sRGBProfile
   (JNIEnv *env, jclass cls) {
 	cmsHPROFILE hProfile = cmsCreate_sRGBProfile();
 	return (jlong) hProfile;

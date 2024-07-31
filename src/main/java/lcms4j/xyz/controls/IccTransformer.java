@@ -52,7 +52,7 @@ public class IccTransformer {
 	 * predefined destination profile.
 	 * 
 	 * @param destinationProfile Destination ICC profile for color transformations
-	 * @param intent Intent for color transformations (<code>JCMS.INTENT_*</code>)
+	 * @param intent Intent for color transformations (<code>LCMS4J.INTENT_*</code>)
 	 * @param blackPointCompensation If <code>true</code>, black point compensation is used for colorimetric relative transformations
 	 * @throws LCMS4JException If destination profile contains invalid data
 	 */
@@ -207,7 +207,7 @@ public class IccTransformer {
 		BufferedImage output = new BufferedImage(width, height, outputType);
 		byte[] outputData = ((DataBufferByte)output.getRaster().getDataBuffer()).getData();
 		int outputNumBands = output.getRaster().getNumBands();
-		int outputFormat = getJcmsBufferType(output);
+		int outputFormat = getLcms4jBufferType(output);
 		if (outputFormat == 0) {
 			throw new LCMS4JException("Unsupported output image type");
 		}
@@ -408,8 +408,8 @@ public class IccTransformer {
 	 * @param image Original image to be color transformed.
 	 * @param src Source profile for color transformation.
 	 * @param dst Destination profile for color transformation.
-	 * @param intent Transformation rendering intent (JCMS.INTENT_*)
-	 * @param flags Flags that modify transformation algorithm (JCMS.CCFLAGS_*)
+	 * @param intent Transformation rendering intent (LCMS4J.INTENT_*)
+	 * @param flags Flags that modify transformation algorithm (LCMS4J.CCFLAGS_*)
 	 * @return Transformed image.
      */
 	public static BufferedImage transform(BufferedImage image, IccProfile src, IccProfile dst, int intent, int flags) throws LCMS4JException {
@@ -424,7 +424,7 @@ public class IccTransformer {
 			throw new IllegalArgumentException("Destination profile must not be null");
 		}
 		// Detect original image type and check if source profile is compatible
-		int inputFormat = getJcmsBufferType(image);
+		int inputFormat = getLcms4jBufferType(image);
 		if (inputFormat == 0) {
 			throw new LCMS4JException("Unsupported input image type");
 		}
@@ -445,7 +445,7 @@ public class IccTransformer {
 			throw new LCMS4JException("Unsupported output profile type");
 		}
 		BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight(), outputImageType);
-		int outputFormat = getJcmsBufferType(outputImage);
+		int outputFormat = getLcms4jBufferType(outputImage);
 		if (outputFormat == 0) {
 			throw new LCMS4JException("Unsupported output image type");
 		}
@@ -481,8 +481,8 @@ public class IccTransformer {
 	 * @param image Original image to be color transformed.
 	 * @param src Source profile for color transformation.
 	 * @param dst Destination profile for color transformation.
-	 * @param intent Transformation rendering intent (JCMS.INTENT_*)
-	 * @param flags Flags that modify transformation algorithm (JCMS.CMSFLAGS_*)
+	 * @param intent Transformation rendering intent (LCMS4J.INTENT_*)
+	 * @param flags Flags that modify transformation algorithm (LCMS4J.CMSFLAGS_*)
 	 * @return Transformed image.
      */
 	public static BufferedImage transform(BufferedImage image, ICC_Profile src, ICC_Profile dst, int intent, int flags) throws LCMS4JException {
@@ -502,11 +502,11 @@ public class IccTransformer {
 	}
 	
 	/**
-	 * Gets JCMS buffer type that fits the raster data of an image
+	 * Gets LCMS4J buffer type that fits the raster data of an image
 	 * @param image Image to analyze
-	 * @return JCMS buffer type Id (<code>JCMS.TYPE_*</code>), or <code>0</code> if no valid type is found
+	 * @return LCMS4J buffer type Id (<code>LCMS4J.TYPE_*</code>), or <code>0</code> if no valid type is found
 	 */
-	private static int getJcmsBufferType(BufferedImage image) {
+	private static int getLcms4jBufferType(BufferedImage image) {
 		int imageType = image.getType();
 		int bufferType = 0;
 		

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Runtime;
 import java.lang.Throwable;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +50,12 @@ public class LCMS4J {
 			if (osName.contains("windows")) {
 				System.loadLibrary(WINDOWS_NATIVE_LIBRARY);
 			} else if (osName.contains("mac")) {
-				//System.setProperty("java.library.path", "resources/lcms4j/xyz/lib/mac64");
+				File path = new File("src/main/resources/lcms4j/xyz/lib/mac64");
+				System.setProperty("java.library.path", path.getAbsolutePath());
+				// Use reflection to update the field that holds the paths
+				//Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+				//fieldSysPath.setAccessible(true);
+				//fieldSysPath.set(null, null);
 				System.loadLibrary(MAC_NATIVE_LIBRARY);
 			} else if (osName.contains("linux")) {
 				//System.setProperty("java.library.path", "src/main/resources/lcms4j/xyz/lib/linux64");
