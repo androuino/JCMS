@@ -1,5 +1,8 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
 	java
+	kotlin("jvm") version "1.8.0"
 }
 
 tasks.withType<JavaCompile> {
@@ -12,24 +15,26 @@ repositories {
 
 dependencies {
 	testImplementation("junit:junit:4.13.1")
+	//testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+	//testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
 
 // Task to generate JNI headers
 tasks.register<Exec>("headers") {
 	description = "Generates JNI .h header files"
 
-	val javaFile = file("src/main/java/com/gmail/etordera/jcms/JCMS.java")
-	val distFile = file("src/jni/cpp/com_gmail_etordera_jcms_JCMS.h")
+	val javaFile = file("src/main/java/lcms4j/xyz/LCMS4J.java")
+	val destFile = file("src/jni/cpp/lcms4j.h")
 
 	inputs.file(javaFile)
-	outputs.file(distFile)
+	outputs.file(destFile)
 
 	commandLine(
-			"javah",
-			"-J-Dfile.encoding=UTF-8",
-			"-classpath", "src/main/java",
-			"-d", "src/jni/cpp",
-			"com.gmail.etordera.jcms.JCMS"
+		"javah",
+		"-J-Dfile.encoding=UTF-8",
+		"-classpath", "src/main/java",
+		"-d", "src/jni/cpp",
+		"lcms4j.xyz.LCMS4J"
 	)
 }
 
@@ -84,9 +89,9 @@ tasks.register<Exec>("jni") {
 
 	val (libOs, libPrefix, libSuffix, compilerFlags, compilerInclude, compilerInclude2) = config
 
-	val libMainDir = "src/main/resources/com/gmail/etordera/jcms/lib"
+	val libMainDir = "src/main/resources/lcms4j/xyz/lib"
 	val libDir = "$libMainDir/$libOs$libArch"
-	val libPath = "$libDir/$libPrefix" + "jcms" + libSuffix
+	val libPath = "$libDir/$libPrefix" + "lcms4j" + libSuffix
 
 	inputs.dir("src/jni/cpp")
 	outputs.file(file(libPath))
@@ -131,5 +136,5 @@ tasks.named<Delete>("clean") {
 
 tasks.test {
 	// Set the java.library.path system property to the directory where the .so file is generated
-	systemProperty("java.library.path", file("src/main/resources/com/gmail/etordera/jcms/lib").absolutePath)
+	systemProperty("java.library.path", file("src/main/resources/lcms4j/xyz/lib/linux64").absolutePath)
 }

@@ -1,4 +1,4 @@
-package com.gmail.etordera.imaging;
+package lcms4j.xyz.imaging;
 
 /**
  * Pixel orientation values for a digital image.
@@ -9,7 +9,7 @@ public enum ImageOrientation {
 	LEFT("LEFT"),
 	DOWN("DOWN");
 	
-	private String m_description;
+	private final String m_description;
 	
 	private ImageOrientation(String description) {
 		m_description = description;

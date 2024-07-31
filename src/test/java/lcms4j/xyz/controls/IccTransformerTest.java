@@ -1,4 +1,4 @@
-package com.gmail.etordera.jcms;
+package lcms4j.xyz.controls;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -12,20 +12,19 @@ import java.io.FileInputStream;
 
 import javax.imageio.ImageIO;
 
+import lcms4j.xyz.LCMS4J;
+import lcms4j.xyz.imaging.ImageMetadata;
+import lcms4j.xyz.imaging.ImageWriter;
 import org.junit.Test;
 
-import com.gmail.etordera.imaging.ImageMetadata;
-import com.gmail.etordera.imaging.ImageWriter;
-
-
 /**
- * Tests for {@link com.gmail.etordera.jcms.IccTransformer} class 
+ * Tests for {@link IccTransformer} class
  *
  */
 public class IccTransformerTest {
 
 	/**
-	 * Test method for {@link com.gmail.etordera.jcms.IccTransformer#transform(java.io.File, java.io.File)}.
+	 * Test method for {@link IccTransformer#transform(java.io.File, java.io.File)}.
 	 */
 	@Test
 	public void testTransformFileFile() {
@@ -57,7 +56,7 @@ public class IccTransformerTest {
 		IccTransformer transformer = null;
 		try {
 			destProfile = new IccProfile(IccProfile.PROFILE_ADOBERGB);
-			transformer = new IccTransformer(destProfile.getICC_Profile(), JCMS.INTENT_RELATIVE_COLORIMETRIC, true);
+			transformer = new IccTransformer(destProfile.getICC_Profile(), LCMS4J.INTENT_RELATIVE_COLORIMETRIC, true);
 			File[] inputFiles = inputFolder.listFiles((dir, name)-> name.toLowerCase().matches(".*\\.(jpe?g|png)"));
             assert inputFiles != null;
             for (File in : inputFiles) {
@@ -66,7 +65,7 @@ public class IccTransformerTest {
 				transformer.transform(in, out);
 				System.out.println("Ok");
 			}
-		} catch (JCMSException e) {
+		} catch (LCMS4JException e) {
 			fail("JCMS Exception: " + e.getMessage());
 			
 		} finally {
@@ -90,7 +89,7 @@ public class IccTransformerTest {
 	}
 
 	/**
-	 * Test for {@link com.gmail.etordera.jcms.IccTransformer#transform(java.awt.image.BufferedImage, java.awt.color.ICC_Profile)}.
+	 * Test for {@link IccTransformer#transform(java.awt.image.BufferedImage, java.awt.color.ICC_Profile)}.
 	 */
 	@Test
 	public void testTransformFileICC_Profile() {
@@ -123,7 +122,7 @@ public class IccTransformerTest {
 		try {
 			srgb = new IccProfile(IccProfile.PROFILE_SRGB);
 			destProfile = new IccProfile(IccProfile.PROFILE_ADOBERGB);
-			transformer = new IccTransformer(destProfile.getICC_Profile(), JCMS.INTENT_RELATIVE_COLORIMETRIC, true);
+			transformer = new IccTransformer(destProfile.getICC_Profile(), LCMS4J.INTENT_RELATIVE_COLORIMETRIC, true);
 			File[] inputFiles = inputFolder.listFiles((dir, name)-> name.toLowerCase().matches(".*\\.(jpe?g|png)") && !name.toLowerCase().contains("fogra"));
             assert inputFiles != null;
             for (File in : inputFiles) {
@@ -140,12 +139,12 @@ public class IccTransformerTest {
 				switch (md.getImageType()) {
 					case PNG:
 						if (!ImageWriter.writePng(image, out, md.getDpiX(), destProfile.getICC_Profile())) {
-							throw new JCMSException("Unable to write output image: " + out.getAbsolutePath());
+							throw new LCMS4JException("Unable to write output image: " + out.getAbsolutePath());
 						}
 						break;
 					case JPEG:
 						if (!ImageWriter.writeJpeg(image, out, transformer.getJpegQuality(), (int)Math.round(md.getDpiX()), destProfile.getICC_Profile())) {
-							throw new JCMSException("Unable to write output image: " + out.getAbsolutePath());
+							throw new LCMS4JException("Unable to write output image: " + out.getAbsolutePath());
 						}
 						break;
 					default:

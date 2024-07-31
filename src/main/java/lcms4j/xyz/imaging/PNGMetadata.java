@@ -1,16 +1,8 @@
-package com.gmail.etordera.imaging;
+package lcms4j.xyz.imaging;
 
 import java.awt.color.ICC_Profile;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.zip.CRC32;
@@ -20,10 +12,9 @@ import java.util.zip.Inflater;
 /**
  * PNG files metadata.<br>
  * <br>
- * PNG docs: <code>https://www.w3.org/TR/PNG/#5DataRep</code>
+ * PNG docs: <code><a href="https://www.w3.org/TR/PNG/#5DataRep">...</a></code>
  */
 public class PNGMetadata extends ImageMetadata {
-	
 	/** Image width (px). */
 	private int m_width;
 	/** Image height (px). */
@@ -54,8 +45,7 @@ public class PNGMetadata extends ImageMetadata {
 		}
 		return true;
 	}
-	
-	
+
 	/**
 	 * Reads a PNG file reader.
 	 * @param is Stream for reading PNG header bytes.
@@ -68,8 +58,7 @@ public class PNGMetadata extends ImageMetadata {
 			throw new Exception("Not a PNG file");
 		}
 	}
-	
-	
+
 	/**
 	 * Reads the next chunk of PNG metadata and stores found data.
 	 * @param is Stream for reading PNG chunks.
@@ -87,40 +76,37 @@ public class PNGMetadata extends ImageMetadata {
 			throw new Exception("Can't read chunk data length");
 		}
 		int dataLength = readInteger(dataLengthBytes);
-		
 		// Get chunk type
 		byte[] typeBytes = new byte[4];
 		if (is.read(typeBytes) != typeBytes.length) {
 			throw new Exception("Can't read chunk type");
 		}
-		String type = new String(typeBytes, Charset.forName("US-ASCII"));
-		
+		String type = new String(typeBytes, StandardCharsets.US_ASCII);
 		// Process chunk data
-		if (type.equals("IHDR")) {
-			parseHeader(is, dataLength);
-			
-		} else if (type.equals("iCCP")) {
-			parseIcc(is, dataLength);
-			
-		} else if (type.equals("pHYs")) {
-			parsePhys(is, dataLength);
-			
-		} else {
-			int skipped = 0;
-			while (skipped != dataLength) {
-				skipped += is.skip(dataLength - skipped);
-			}
-		}
-		
+        switch (type) {
+            case "IHDR":
+                parseHeader(is, dataLength);
+                break;
+            case "iCCP":
+                parseIcc(is, dataLength);
+                break;
+            case "pHYs":
+                parsePhys(is, dataLength);
+                break;
+            default:
+                int skipped = 0;
+                while (skipped != dataLength) {
+                    skipped += (int) is.skip(dataLength - skipped);
+                }
+                break;
+        }
 		// Read CRC
 		byte[] crc = new byte[4];
 		if (is.read(crc) != crc.length) {
 			throw new Exception("Can't read chunk CRC");
 		}
-				
 		return true;
 	}
-	
 
 	/**
 	 * Parses header metadata (IHDR chunk).
@@ -138,8 +124,7 @@ public class PNGMetadata extends ImageMetadata {
 		m_colourType = readBytes(is, 1)[0];
 		readBytes(is, 3);
 	}
-	
-	
+
 	/**
 	 * Parses embedded ICC profile metadata (iCCP chunk)
 	 * @param is Stream for reading chunk data.
@@ -156,18 +141,15 @@ public class PNGMetadata extends ImageMetadata {
 			}
 			nameLength++;
 		} while (b[0] != 0);
-		
 		// Compression method
 		if (readBytes(is, 1)[0] != 0) {
 			throw new Exception("Unsupported ICC compression method.");
 		}
-		
 		// Read ICC data
 		int dataLength = length - nameLength - 1;
 		m_iccProfileData = readBytes(is, dataLength);
 		m_iccProfileData = decompress(m_iccProfileData);
 	}
-	
 
 	/**
 	 * Parses physical dimensions metadata (pHYs chunk)
@@ -190,7 +172,6 @@ public class PNGMetadata extends ImageMetadata {
 		}
 	}
 	
-	
 	/**
 	 * Reads a 32 bit integer from 4 bytes of a PNG file.
 	 * @param bytes 4 bytes from a JPEG file.
@@ -204,7 +185,6 @@ public class PNGMetadata extends ImageMetadata {
 		value |= (0xFF & bytes[0]) << 24;
 		return value;
 	}
-
 	
 	/**
 	 * Decompresses a ZLIB compressed data buffer.
@@ -228,7 +208,6 @@ public class PNGMetadata extends ImageMetadata {
 		return output;  
 	}
 	
-	
 	/**
 	 * Compresses a data buffer using the ZLIB algorithm.
 	 * @param data Original data.
@@ -244,7 +223,6 @@ public class PNGMetadata extends ImageMetadata {
 		return Arrays.copyOfRange(output, 0, compressedDataLength);
 	}
 	
-	
 	/**
 	 * Embeds an ICC profile into an existing PNG file.
 	 * @param imagePath Path to PNG file.
@@ -255,7 +233,6 @@ public class PNGMetadata extends ImageMetadata {
 		return embedMetadata(imagePath, iccProfile, 0);
 	}
 
-
 	/**
 	 * Embeds resolution data into an existing PNG file.
 	 * @param imagePath Path to PNG file.
@@ -265,8 +242,7 @@ public class PNGMetadata extends ImageMetadata {
 	public static boolean embedResolution(String imagePath, double dpi) {
 		return embedMetadata(imagePath, null, dpi);
 	}
-	
-	
+
 	/**
 	 * Embeds metadata data into an existing PNG file.
 	 * @param imagePath Path to PNG file.
@@ -275,16 +251,14 @@ public class PNGMetadata extends ImageMetadata {
 	 * @return <code>true</code> on success, <code>false</code> on error.
 	 */
 	public static boolean embedMetadata(String imagePath, ICC_Profile iccProfile, double dpi) {
-		
 		// Create temp file
-		File tempFile = null;
+		File tempFile;
 		try {
 			tempFile = File.createTempFile("tmp", "png");
 		} catch (Exception e) {
-			System.err.println("No se puede crear archivo temporal para incrustar perfil: " + e.getMessage());
+			System.err.println("Cannot create temporary file for embedding profile: " + e.getMessage());
 			return false;			
 		}
-		
 		// Copy original PNG data, while adding/updating metadata chunks
 		File imageFile = new File(imagePath);
 		try (
@@ -295,7 +269,6 @@ public class PNGMetadata extends ImageMetadata {
 			// Header
 			byte[] header = readBytes(is, 8);
 			os.write(header);
-			
 			// Chunks
 			boolean headerRead = false;
 			boolean iccWritten = false;
@@ -311,20 +284,16 @@ public class PNGMetadata extends ImageMetadata {
 					throw new Exception("Can't read chunk data length");
 				}
 				int dataLength = readInteger(dataLengthBytes);
-				
 				// Read type
 				byte[] type = readBytes(is, 4);
-				String typeStr = new String(type, Charset.forName("US-ASCII"));
-				
+				String typeStr = new String(type, StandardCharsets.US_ASCII);
 				// Read data
 				byte[] data = null;
 				if (dataLength > 0) {
 					data = readBytes(is, dataLength);
 				}
-				
 				// Read CRC
 				byte[] crc = readBytes(is, 4);
-				
 				// Copy chunk to output file, skip chunks to be modified
 				boolean skipChunk = false;
 				skipChunk |= (typeStr.equals("iCCP") && iccProfile != null);
@@ -337,17 +306,15 @@ public class PNGMetadata extends ImageMetadata {
 					}
 					os.write(crc);
 				}
-				
 				// Register header read
 				if (typeStr.equals("IHDR")) {
 					headerRead = true;
 				}
-				
 				// Add new ICC profile chunk
 				if (headerRead && iccProfile != null && !iccWritten) {
 					byte[] profileData = compress(iccProfile.getData());
 					String profileName = "ICC Profile";
-					byte[] namebytes = profileName.getBytes(Charset.forName("ISO-8859-1"));
+					byte[] namebytes = profileName.getBytes(StandardCharsets.ISO_8859_1);
 					byte[] chunkData = new byte[profileName.length() + 1 + 1 + profileData.length];
 
 					System.arraycopy(namebytes, 0, chunkData, 0, namebytes.length);
@@ -358,7 +325,6 @@ public class PNGMetadata extends ImageMetadata {
 					writeChunk(os, "iCCP", chunkData);					
 					iccWritten = true;
 				}
-				
 				// Add new resolution data chunk
 				if (headerRead && dpi > 0 && !physWritten) {
 					int pixelsPerMeter = (int) Math.round(dpi * 100.0 / 2.54);
@@ -374,29 +340,25 @@ public class PNGMetadata extends ImageMetadata {
 					writeChunk(os, "pHYs", chunkData);					
 					physWritten = true;
 				}
-				
-			} while (true);			
-			
+			} while (true);
 		} catch (Exception e) {
-			System.err.println("Can't generate file with embeded metadata: " + e.getMessage());
-			tempFile.delete();
+			System.err.println("Can't generate file with embedded metadata: " + e.getMessage());
+			//tempFile.delete(); // fixme: delete is ignored
 			return false;
 		}
-		
 		// Replace original file with generated temp file
 		try {
 			Files.delete(imageFile.toPath());
 			Files.move(tempFile.toPath(), imageFile.toPath());
 		} catch (IOException e) {
-			System.err.println("Can't generate file with embeded metadata: " + e.getMessage());
-			tempFile.delete();
+			System.err.println("Can't generate file with embedded metadata: " + e.getMessage());
+			//tempFile.delete(); // fixme: dlete is ignored
 			return false;
 		}
 
 		return true;
 	}
 
-	
 	/**
 	 * Writes a PNG chunk to a stream.
 	 * @param os Stream where to write. 
@@ -414,7 +376,7 @@ public class PNGMetadata extends ImageMetadata {
 		if (chunkType.length() != 4) {
 			throw new Exception("Invalid chunk type: " + chunkType);
 		}
-		byte[] iccType = chunkType.getBytes(Charset.forName("US-ASCII")); 
+		byte[] iccType = chunkType.getBytes(StandardCharsets.US_ASCII);
 		os.write(iccType);
 		
 		os.write(chunkData);
@@ -423,13 +385,12 @@ public class PNGMetadata extends ImageMetadata {
 		crc32.update(iccType);
 		crc32.update(chunkData);
 		long crcValue = crc32.getValue();
-		os.write((int)((crcValue & 0x00000000FF000000) >> 24));
+		os.write((int)((crcValue & 0x00000000FF000000L) >> 24));
 		os.write((int)((crcValue & 0x0000000000FF0000) >> 16));
 		os.write((int)((crcValue & 0x000000000000FF00) >> 8));
 		os.write((int)((crcValue & 0x00000000000000FF)));
 	}
-	
-		
+
 	@Override
 	public ICC_Profile getIccProfile() {
 		ICC_Profile profile = null;
@@ -441,60 +402,50 @@ public class PNGMetadata extends ImageMetadata {
 		return profile;
 	}
 
-
 	@Override
 	public int getWidth() {
 		return m_width;
 	}
 
-	
 	@Override
 	public int getHeight() {
 		return m_height;
 	}
-
 
 	@Override
 	public int getBitDepth() {
 		return m_bitDepth;
 	}
 
-	
 	@Override
 	public boolean isGreyscale() {
 		return m_colourType == 0 || m_colourType == 4;
 	}
 	
-
 	@Override
 	public boolean isRGB() {
 		return m_colourType == 2 || m_colourType == 6;
 	}
 
-	
 	@Override
 	public boolean isIndexed() {
 		return m_colourType == 3;
 	}
 
-	
 	@Override
 	public boolean isTransparent() {
 		return m_colourType == 4 || m_colourType == 6;
 	}
 
-	
 	@Override
 	public ImageType getImageType() {
 		return ImageType.PNG;
 	}
 
-
 	@Override
 	public double getDpiX() {
 		return m_dpiX;
 	}
-
 
 	@Override
 	public double getDpiY() {

@@ -1,8 +1,8 @@
 #include <jni.h>
 #include <lcms2.h>
-#include "com_gmail_etordera_jcms_JCMS.h"
+#include "lcms4j_xyz_LCMS4J.h"
 
-JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsOpenProfileFromFile
+JNIEXPORT jlong JNICALL Java_lcms4j_xyz_LCMS4J_cmsOpenProfileFromFile
   (JNIEnv *env, jclass cls, jstring filename, jstring mode) {
 
 	const char *strFilename = env->GetStringUTFChars(filename, 0);
@@ -14,7 +14,7 @@ JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsOpenProfileFromFile
 	return (jlong)hProfile;
 }
 
-JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsOpenProfileFromMem
+JNIEXPORT jlong JNICALL Java_lcms4j_xyz_LCMS4J_cmsOpenProfileFromMem
   (JNIEnv *env, jclass cls, jbyteArray dataBuffer) {
 	jbyte* data = env->GetByteArrayElements(dataBuffer, NULL);
 	jsize size = env->GetArrayLength(dataBuffer);
@@ -24,20 +24,20 @@ JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsOpenProfileFromMem
 	return (jlong)hProfile;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsCloseProfile
+JNIEXPORT jboolean JNICALL Java_lcms4j_xyz_LCMS4J_cmsCloseProfile
   (JNIEnv *env, jclass cls, jlong hprofile) {
 	cmsCloseProfile((void *)hprofile);
 	return true;
 }
 
-JNIEXPORT jstring JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsGetProfileInfoASCII
+JNIEXPORT jstring JNICALL Java_lcms4j_xyz_LCMS4J_cmsGetProfileInfoASCII
   (JNIEnv *env, jclass cls, jlong hprofile) {
 	char textBuffer[512];
 	cmsGetProfileInfoASCII((void*)hprofile, cmsInfoDescription,"en","EN",textBuffer,512);
 	return env->NewStringUTF(textBuffer);
 }
 
-JNIEXPORT jbyteArray JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsSaveProfileToMem
+JNIEXPORT jbyteArray JNICALL Java_lcms4j_xyz_LCMS4J_cmsSaveProfileToMem
   (JNIEnv *env, jclass cls, jlong hprofile) {
 
 	// Get required buffer size
@@ -60,19 +60,19 @@ JNIEXPORT jbyteArray JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsSaveProfileToM
 }
 
 
-JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsCreateTransform
+JNIEXPORT jlong JNICALL Java_lcms4j_xyz_LCMS4J_cmsCreateTransform
   (JNIEnv *env, jclass cls, jlong hInputProfile, jint inputType, jlong hOutputProfile, jint outputType, jint intent, jint flags) {
 	cmsHTRANSFORM hTransform = cmsCreateTransform((void*)hInputProfile, inputType, (void*)hOutputProfile, outputType, intent, flags);
 	return (jlong)hTransform;
 }
 
-JNIEXPORT void JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsDeleteTransform
+JNIEXPORT void JNICALL Java_lcms4j_xyz_LCMS4J_cmsDeleteTransform
   (JNIEnv *env, jclass cls, jlong hTransform) {
 	cmsDeleteTransform((void*)hTransform);
 	return;
 }
 
-JNIEXPORT void JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsDoTransform
+JNIEXPORT void JNICALL Java_lcms4j_xyz_LCMS4J_cmsDoTransform
   (JNIEnv *env, jclass cls, jlong hTransform, jbyteArray inputBuffer, jbyteArray outputBuffer, jint size) {
 	jbyte* input = env->GetByteArrayElements(inputBuffer, NULL);
 	jbyte* output = env->GetByteArrayElements(outputBuffer, NULL);
@@ -82,14 +82,14 @@ JNIEXPORT void JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsDoTransform
 	return;
 }
 
-JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsCreate_1sRGBProfile
+JNIEXPORT jlong JNICALL Java_lcms4j_xyz_LCMS4J_JCMS_cmsCreate_1sRGBProfile
   (JNIEnv *env, jclass cls) {
 	cmsHPROFILE hProfile = cmsCreate_sRGBProfile();
 	return (jlong) hProfile;
 }
 
 
-JNIEXPORT jlong JNICALL Java_com_gmail_etordera_jcms_JCMS_cmsCreateGrayProfile
+JNIEXPORT jlong JNICALL Java_lcms4j_xyz_LCMS4J_cmsCreateGrayProfile
   (JNIEnv *env, jclass cls, jdouble gamma) {
 	cmsToneCurve* GammaCurve = cmsBuildGamma(0, (cmsFloat64Number)gamma);
 	cmsHPROFILE hProfile = cmsCreateGrayProfile(cmsD50_xyY(), GammaCurve);

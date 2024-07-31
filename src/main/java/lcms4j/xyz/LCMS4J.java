@@ -1,4 +1,4 @@
-package com.gmail.etordera.jcms;
+package lcms4j.xyz;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -8,6 +8,7 @@ import java.lang.Runtime;
 import java.lang.Throwable;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,14 +30,14 @@ import java.util.jar.JarFile;
  * 
  * @author Enric Tordera
  */
-public class JCMS {
+public class LCMS4J {
 
-	/** Version number for JCMS library. */
+	/** Version number for LCMS4J library. */
 	private static final String VERSION = "1.0";
 	/** Name of system property for native library path. */
-	private static final String LINUX_NATIVE_LIBRARY = "libjcms.so";
-	private static final String MAC_NATIVE_LIBRARY = "libmacjcms.dylib";
-	private static final String WINDOWS_NATIVE_LIBRARY = "libwinjcms.so";
+	private static final String LINUX_NATIVE_LIBRARY = "lcms4j";
+	private static final String MAC_NATIVE_LIBRARY = "maclcms4j";
+	private static final String WINDOWS_NATIVE_LIBRARY = "winlcms4j";
 	/** Path to temp dir where native libraries are extracted to during runtime */
 	private static String m_tempDir = null;
 
@@ -48,10 +49,10 @@ public class JCMS {
 			if (osName.contains("windows")) {
 				System.loadLibrary(WINDOWS_NATIVE_LIBRARY);
 			} else if (osName.contains("mac")) {
-				System.setProperty("java.library.path", "resources/com/gmail/etordera/jcms/lib/mac64");
+				//System.setProperty("java.library.path", "resources/lcms4j/xyz/lib/mac64");
 				System.loadLibrary(MAC_NATIVE_LIBRARY);
 			} else if (osName.contains("linux")) {
-				System.setProperty("java.library.path", "resources/com/gmail/etordera/jcms/lib/linux64");
+				//System.setProperty("java.library.path", "src/main/resources/lcms4j/xyz/lib/linux64");
 				System.loadLibrary(LINUX_NATIVE_LIBRARY);
 			} else {
 				System.loadLibrary(LINUX_NATIVE_LIBRARY);
@@ -74,14 +75,14 @@ public class JCMS {
 			}
 			
 			// Get libraries from classpath resources
-			String basePath = "com/gmail/etordera/jcms/lib/"+getPlatform();
+			String basePath = "resources/lcms4j/xyz/lib/"+getPlatform();
 			String[] libs = getResourceSharedObjects(basePath);
 
 			try {
 				// Prepare temp directory for extracted resources
 				boolean tempFiles = false;
 				if (libDir == null) {
-					libDir = Files.createTempDirectory("jcmstmp");
+					libDir = Files.createTempDirectory("lcms4jtmp");
 					tempFiles = true;
 				}
 				// Delete temp files on exit
@@ -110,11 +111,11 @@ public class JCMS {
 				}
 							
 				// Try to load libraries from classpath resources
-				if (!loadSharedObjects(basePath, new LinkedList<String>(Arrays.asList(libs)), libDir, tempFiles)) {
-					throw new UnsatisfiedLinkError("Failed to load JCMS native libraries.");
+				if (!loadSharedObjects(basePath, new LinkedList<>(Arrays.asList(libs)), libDir, tempFiles)) {
+					throw new UnsatisfiedLinkError("Failed to load LCMS4J native libraries.");
 				}
 			} catch (IOException ioex) {
-				throw new UnsatisfiedLinkError("Failed to load JCMS native library ("+ioex.getMessage()+")");
+				throw new UnsatisfiedLinkError("Failed to load LCMS4J native library ("+ioex.getMessage()+")");
 			}			
 		}
 	}
@@ -137,7 +138,7 @@ public class JCMS {
 			String soName = it.next();
 			try {
 				// Extract shared object to temp file
-				InputStream in = JCMS.class.getClassLoader().getResourceAsStream(basePath+"/"+soName);
+				InputStream in = LCMS4J.class.getClassLoader().getResourceAsStream(basePath+"/"+soName);
 				File outFile = new File(outDir.toFile().getAbsolutePath()+"/"+soName);
 				Files.copy(in, outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 				in.close();
@@ -208,7 +209,7 @@ public class JCMS {
 		String[] listing = new String[] {};
 		
 		try {
-			URL dirURL = JCMS.class.getClassLoader().getResource(path);
+			URL dirURL = LCMS4J.class.getClassLoader().getResource(path);
 			if (dirURL != null && dirURL.getProtocol().equals("file")) {
 				File dir = new File(dirURL.toURI());
 				listing = dir.list(new FilenameFilter() {
@@ -219,21 +220,22 @@ public class JCMS {
 			} 
 			
 			if (dirURL == null) {
-				String me = JCMS.class.getName().replace(".", "/")+".class";
-				dirURL = JCMS.class.getClassLoader().getResource(me);
+				String me = LCMS4J.class.getName().replace(".", "/")+".class";
+				dirURL = LCMS4J.class.getClassLoader().getResource(me);
 			}
-			  
-			if (dirURL.getProtocol().equals("jar")) {
+
+            assert dirURL != null;
+            if (dirURL.getProtocol().equals("jar")) {
 				String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!"));
-				JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
+				JarFile jar = new JarFile(URLDecoder.decode(jarPath, StandardCharsets.UTF_8));
 				Enumeration<JarEntry> entries = jar.entries();
 				Set<String> result = new HashSet<String>();
 				while (entries.hasMoreElements()) {
 				  String name = entries.nextElement().getName();
 				  if (name.startsWith(path)) {
 				    String entry = name.substring(path.length());
-				    int checkSubdir = entry.indexOf("/");
-				    if (checkSubdir == 0) {
+				    int checkSubDir = entry.indexOf("/");
+				    if (checkSubDir == 0) {
 				      entry = entry.substring(1);
 				    }
 				    if (entry.toLowerCase().matches(".*\\.(so|dll)")) {
@@ -242,7 +244,7 @@ public class JCMS {
 				  }
 				}
 				jar.close();
-				listing = result.toArray(new String[result.size()]);
+				listing = result.toArray(new String[0]);
 			} 
 				    	  
 		} catch (Exception e) {
@@ -254,8 +256,8 @@ public class JCMS {
 	
 	
 	/**
-	 * Gets JCMS library version string.
-	 * @return JCMS library version string.
+	 * Gets LCMS4J library version string.
+	 * @return LCMS4J library version string.
 	 */
 	public static String getVersion() {
 		return VERSION;

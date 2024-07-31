@@ -1,4 +1,6 @@
-package com.gmail.etordera.jcms;
+package lcms4j.xyz.controls;
+
+import lcms4j.xyz.LCMS4J;
 
 /**
  * Represents an ICC color transformation operation.<br><br>
@@ -10,7 +12,6 @@ package com.gmail.etordera.jcms;
  *
  */
 public class IccTransform {
-	
 	/** Handle to native ICC transform data */
 	private long m_hTransform = 0;
 	
@@ -26,12 +27,12 @@ public class IccTransform {
 	 * @param outputFormat Format of the output pixel data for the color transformation operations  (JCMS.TYPE_*).
 	 * @param intent Rendering intent for the color transformation (JCMS.INTENT_*).
 	 * @param flags Flags that modify transformation algorithm (JCMS.CMSFLAGS_*) 
-	 * @throws JCMSException If not able to create native Icc Transform object
+	 * @throws LCMS4JException If not able to create native Icc Transform object
 	 */
-	public IccTransform(IccProfile srcProfile, int inputFormat, IccProfile dstProfile, int outputFormat, int intent, int flags) throws JCMSException {
-		m_hTransform = JCMS.cmsCreateTransform(srcProfile.getHandle(), inputFormat, dstProfile.getHandle(), outputFormat, intent, flags);
+	public IccTransform(IccProfile srcProfile, int inputFormat, IccProfile dstProfile, int outputFormat, int intent, int flags) throws LCMS4JException {
+		m_hTransform = LCMS4J.cmsCreateTransform(srcProfile.getHandle(), inputFormat, dstProfile.getHandle(), outputFormat, intent, flags);
 		if (m_hTransform == 0) {
-			throw new JCMSException("Can't create native IccTransform");
+			throw new LCMS4JException("Can't create native IccTransform");
 		}
 	}
 	
@@ -40,7 +41,7 @@ public class IccTransform {
 	 */
 	public void dispose() {
 		if (m_hTransform != 0) {
-			JCMS.cmsDeleteTransform(m_hTransform);
+			LCMS4J.cmsDeleteTransform(m_hTransform);
 			m_hTransform = 0;
 		}
 	}
@@ -57,7 +58,7 @@ public class IccTransform {
 	 * @param size Number of pixels to be transformed
 	 */
 	public void transform(byte[] inputData, byte[] outputData, int size) {
-		JCMS.cmsDoTransform(m_hTransform, inputData, outputData, size);
+		LCMS4J.cmsDoTransform(m_hTransform, inputData, outputData, size);
 	}
 	
 }

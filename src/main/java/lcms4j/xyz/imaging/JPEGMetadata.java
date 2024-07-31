@@ -1,18 +1,6 @@
-package com.gmail.etordera.imaging;
+package lcms4j.xyz.imaging;
 
-import java.awt.Dimension;
-import java.awt.color.ICC_Profile;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Vector;
+import org.w3c.dom.Node;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -23,8 +11,14 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Node;
+import java.awt.*;
+import java.awt.color.ICC_Profile;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Vector;
 
 /**
  * Gets metadata from JPEG images.
@@ -104,15 +98,15 @@ public class JPEGMetadata extends ImageMetadata {
 	private static final byte JPEG_MARKER_APP13 = (byte)0xED;
 	private static final byte JPEG_MARKER_APP14 = (byte)0xEE;
 	private static final byte JPEG_MARKER_APP15 = (byte)0xEF;	
-	private static final byte SOI[] = {(byte) 0xFF,(byte) 0xD8};
+	private static final byte[] SOI = {(byte) 0xFF,(byte) 0xD8};
 	/** Identification string for APP2 ICC Profile segments */
-	private static final byte ICC_TAG[] = {'I','C','C','_','P','R','O','F','I','L','E',0};
+	private static final byte[] ICC_TAG = {'I','C','C','_','P','R','O','F','I','L','E',0};
 	/** Identification string for APP1 EXIF segments */
-	private static final byte EXIF_TAG[] = {'E','x','i','f',0,0};
+	private static final byte[] EXIF_TAG = {'E','x','i','f',0,0};
 	/** Identification string for APP14 Adobe segments */
-	private static final byte ADOBE_TAG[] = {'A','d','o','b','e',0};
+	private static final byte[] ADOBE_TAG = {'A','d','o','b','e',0};
 	/** Identification string for JFIF segments. */
-	private static final byte JFIF_TAG[] = {'J','F','I','F',0};
+	private static final byte[] JFIF_TAG = {'J','F','I','F',0};
 	//private static final byte JFXX_TAG[] = {'J','F','X','X',0};
 		
 	/**
@@ -158,7 +152,7 @@ public class JPEGMetadata extends ImageMetadata {
 	 * Saves JPEG thumbnail to file.
 	 *
 	 * @param thumbnail Path to output thumbnail file
-	 * @return <code>true</code> on succes, <code>false</code> on error
+	 * @return <code>true</code> on success, <code>false</code> on error
 	 */
 	public boolean saveThumbnail(String thumbnail) {
 		if (m_thumbPos!=0 && m_thumbSize!=0) {
@@ -168,8 +162,6 @@ public class JPEGMetadata extends ImageMetadata {
 				fis.getChannel().transferTo(m_thumbPos, m_thumbSize, fos.getChannel());
 				fis.close();
 				fos.close();
-			} catch (FileNotFoundException e) {
-				return false;
 			} catch (IOException e) {
 				return false;
 			}
@@ -192,11 +184,9 @@ public class JPEGMetadata extends ImageMetadata {
 			try {
 				FileInputStream fis = new FileInputStream(m_filename);
 				fis.getChannel().position(m_thumbPos);
-				fis.read(buffer);
+				//fis.read(buffer); // fixme: what should I do here?
 				fis.close();
 				return new ByteArrayInputStream(buffer);
-			} catch (FileNotFoundException e) {
-				return null;
 			} catch (IOException e) {
 				return null;
 			}
@@ -234,8 +224,8 @@ public class JPEGMetadata extends ImageMetadata {
 			long markerLength;
 			long markerStart;
 			boolean finished = false;
-			m_iccPositions = new Vector<Long>();
-			m_iccSizes = new Vector<Long>();
+			m_iccPositions = new Vector<>();
+			m_iccSizes = new Vector<>();
 			while (!finished) {
 				buffer = readBytes(fis, 2);
 				if (buffer[0] != (byte)0xFF) {
@@ -286,16 +276,12 @@ public class JPEGMetadata extends ImageMetadata {
 								long exifValueOffset = exifReadValue(subArray(buffer,8,12),littleEndian,exifType,exifCount);
 								if (exifTag == 0x0112) {
 									m_orientation = exifValueOffset;
-									
 								} else if (exifTag == 0x8769) {
 									exifIFDoffset = exifValueOffset;
-									
 								} else if (exifTag == 0x13e) {
 									whitePointOffset = exifValueOffset;
-									
 								} else if (exifTag == 0x13f) {
 									primariesOffset = exifValueOffset;
-									
 								} else if (exifTag == 0x011A || exifTag == 0x011B) {
 									// X Resolution / Y Resolution
 									long currentPos = fis.getChannel().position();
@@ -332,7 +318,7 @@ public class JPEGMetadata extends ImageMetadata {
 
 							// Check AdobeRGB white point and primaries
 							if (m_exifColorSpace == EXIF_CS_UNKNOWN) {
-								long rationals[] = new long[16];
+								long[] rationals = new long[16];
                                 for (int r=0; r<16; r++) rationals[r] = 0;
 
                                 if (whitePointOffset != 0) {
@@ -351,10 +337,10 @@ public class JPEGMetadata extends ImageMetadata {
                                     }
                                 }       
 
-                                long adobeRGBrationals[] = {313,1000,329,1000,64,100,33,100,21,100,71,100,15,100,6,100};
+                                long[] adobeRGBRationals = {313,1000,329,1000,64,100,33,100,21,100,71,100,15,100,6,100};
                                 boolean isAdobeRGB = true;
                                 for (int cmp=0; cmp<16; cmp++) {
-                                    if (rationals[cmp] != adobeRGBrationals[cmp]) {
+                                    if (rationals[cmp] != adobeRGBRationals[cmp]) {
                                             isAdobeRGB = false;
                                             break;
                                     }
@@ -424,7 +410,7 @@ public class JPEGMetadata extends ImageMetadata {
 					case JPEG_MARKER_APP15:
 						buffer = readBytes(fis, 2);
 						markerLength = (0xFF & buffer[0])*256 + (0xFF & buffer[1]);
-						fis.skip(markerLength-2);
+						//fis.skip(markerLength-2); // fixme: compiler says, this will be ignored
 						break;
 
 					default:
@@ -453,7 +439,7 @@ public class JPEGMetadata extends ImageMetadata {
 			System.err.println("Metadata still not loaded.");
 			return null;
 		}
-		if ((m_iccPositions.size() != m_iccSizes.size()) || (m_iccPositions.size() == 0)) {
+		if ((m_iccPositions.size() != m_iccSizes.size()) || (m_iccPositions.isEmpty())) {
 			return null;
 		}
 		
@@ -483,8 +469,10 @@ public class JPEGMetadata extends ImageMetadata {
 			}
 			is.close();
 		} catch (Exception e) {
-			e.printStackTrace();
-			try {is.close();} catch (Exception ex) {/*Ignore*/}
+			try {
+                assert is != null;
+                is.close();} catch (Exception ex) {/*Ignore*/}
+			System.err.println("Error: Returning with null value - " + e.getMessage());
 			return null;
 		}
 		
@@ -513,8 +501,11 @@ public class JPEGMetadata extends ImageMetadata {
 		if ((src.length >= length) && (dst.length >= length)) {
 			result = true;
 			try {
-				for (int i=0; i<length && result; i++) {
-					if (src[i] != dst[i]) result = false;
+				for (int i = 0; i<length; i++) {
+                    if (src[i] != dst[i]) {
+                        result = false;
+                        break;
+                    }
 				}
 			} catch (IndexOutOfBoundsException e) {
 				result = false;
@@ -549,9 +540,9 @@ public class JPEGMetadata extends ImageMetadata {
 	 */
 	long exifReadLong(byte[] buffer, boolean littleEndian) {
 		if (littleEndian) {
-			return ((0xFF & buffer[3]) << 24) | ((0xFF & buffer[2]) << 16) | ((0xFF & buffer[1]) << 8) | (0xFF & buffer[0]);
+			return ((long) (0xFF & buffer[3]) << 24) | ((0xFF & buffer[2]) << 16) | ((0xFF & buffer[1]) << 8) | (0xFF & buffer[0]);
 		} else {
-			return ((0xFF & buffer[0]) << 24) | ((0xFF & buffer[1]) << 16) | ((0xFF & buffer[2]) << 8) | (0xFF & buffer[3]);
+			return ((long) (0xFF & buffer[0]) << 24) | ((0xFF & buffer[1]) << 16) | ((0xFF & buffer[2]) << 8) | (0xFF & buffer[3]);
 		}
 
 	}
@@ -722,8 +713,8 @@ public class JPEGMetadata extends ImageMetadata {
 	
 		// Determine location of current APP2 ICC Profile markers
 		byte[] buffer = new byte[256];
-		Vector<Long> APP2Positions = new Vector<Long>();
-		Vector<Long> APP2Lengths = new Vector<Long>();
+		Vector<Long> APP2Positions = new Vector<>();
+		Vector<Long> APP2Lengths = new Vector<>();
 		FileInputStream fis = null;
 		FileOutputStream os = null;
 		File tempFile = null;
@@ -794,7 +785,7 @@ public class JPEGMetadata extends ImageMetadata {
 							return false;
 						}
 						markerLength = (0xFF & buffer[0])*256 + (0xFF & buffer[1]);
-						fis.skip(markerLength-2);
+						//fis.skip(markerLength-2); // fixme: skip result is ignored
 						break;
 
 					default:
@@ -844,10 +835,14 @@ public class JPEGMetadata extends ImageMetadata {
 			Files.delete(tempFile.toPath());
 			
 		} catch (Exception e) {
-			e.printStackTrace();
-			try {fis.close();} catch (Exception ex) {/*Ignore*/}
-			try {os.close();} catch (Exception ex) {/*Ignore*/}
-			if (tempFile != null) tempFile.delete();
+			System.err.println(e.getMessage());
+			try {
+                assert fis != null;
+                fis.close();} catch (Exception ex) {/*Ignore*/}
+			try {
+                assert os != null;
+                os.close();} catch (Exception ex) {/*Ignore*/}
+            //tempFile.delete(); // fixme: delete() is ignored
 			return false;
 		}	
 		
@@ -888,7 +883,9 @@ public class JPEGMetadata extends ImageMetadata {
             reader.dispose();
             
         } catch (Exception e) {
-        	try {reader.dispose();} catch (Exception ex) {/* Ignore */}
+        	try {
+                assert reader != null;
+                reader.dispose();} catch (Exception ex) {/* Ignore */}
         }
 		
         return dpi;
@@ -897,7 +894,7 @@ public class JPEGMetadata extends ImageMetadata {
 	/**
 	 * Gets content from a DOM tree using XPath query
 	 *  
-	 * @param xpathQuery XPath expression to query the tree.
+	 * @param xpathQuery XPath's expression to query the tree.
 	 * @param type Type of content to get (<code>XPathConstants.*</code>)
 	 * @return Object with found content, or <code>null</code> on error
 	 */
@@ -915,8 +912,8 @@ public class JPEGMetadata extends ImageMetadata {
 				object = expression.evaluate(node, type);
 			}
 		} catch (Exception e) {
-			object = null;
-		}
+			System.err.println(e.getMessage());
+        }
 		
 		return object;
 	}
@@ -965,7 +962,9 @@ public class JPEGMetadata extends ImageMetadata {
             reader.dispose();
             
         } catch (Exception e) {
-        	try {reader.dispose();} catch (Exception ex) {/*Ignore*/}
+        	try {
+                assert reader != null;
+                reader.dispose();} catch (Exception ex) {/*Ignore*/}
         }		
 	}
     
@@ -992,7 +991,9 @@ public class JPEGMetadata extends ImageMetadata {
 		    }
 		    in.close();
 		} catch (Exception e) {
-		    try {in.close();} catch (Exception ex) {/*Ignore*/}
+		    try {
+                assert in != null;
+                in.close();} catch (Exception ex) {/*Ignore*/}
 		    m_numBands = 4;
 		}
 	}

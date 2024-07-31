@@ -1,4 +1,4 @@
-package com.gmail.etordera.imaging;
+package lcms4j.xyz.imaging;
 
 /**
  * Image type identifiers.
@@ -11,7 +11,7 @@ public enum ImageType {
 	TIFF_LE("TIFF_LE"),
 	TIFF_BE("TIFF_BE");
 	
-	private String m_description;
+	private final String m_description;
 	
 	private ImageType(String description) {
 		m_description = description;

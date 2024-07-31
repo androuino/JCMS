@@ -1,4 +1,4 @@
-package com.gmail.etordera.jcms;
+package lcms4j.xyz.controls;
 
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_Profile;
@@ -14,10 +14,11 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
-import com.gmail.etordera.imaging.ImageMetadata;
-import com.gmail.etordera.imaging.ImageType;
-import com.gmail.etordera.imaging.ImageWriter;
-import com.gmail.etordera.imaging.JPEGMetadata;
+import lcms4j.xyz.LCMS4J;
+import lcms4j.xyz.imaging.ImageMetadata;
+import lcms4j.xyz.imaging.ImageType;
+import lcms4j.xyz.imaging.ImageWriter;
+import lcms4j.xyz.imaging.JPEGMetadata;
 
 /**
  * An <code>IccTransformer</code> performs ICC color transformation on images.<br><br>
@@ -29,7 +30,6 @@ import com.gmail.etordera.imaging.JPEGMetadata;
  *
  */
 public class IccTransformer {
-
 	/** Destination profile for color transformations */
 	private IccProfile m_destinationProfile = null;
 	/** Default RGB profile to be used as source for color transformations */
@@ -39,9 +39,9 @@ public class IccTransformer {
 	/** Default Gray profile to be used as source for color transformations */
 	private IccProfile m_defaultGray = null; 
 	/** Intent for color transformations */
-	private int m_intent = JCMS.INTENT_RELATIVE_COLORIMETRIC;
+	private int m_intent = LCMS4J.INTENT_RELATIVE_COLORIMETRIC;
 	/** Flags for color transformations */
-	private int m_flags = JCMS.CMSFLAGS_BLACKPOINTCOMPENSATION;
+	private int m_flags = LCMS4J.CMSFLAGS_BLACKPOINTCOMPENSATION;
 	/** Use embedded profiles in source files. If false, default profiles are used as source profiles */ 
 	private boolean m_useEmbeddedProfiles = true;
 	/** Quality of JPEG compression for output files (0 to 1)*/
@@ -54,12 +54,12 @@ public class IccTransformer {
 	 * @param destinationProfile Destination ICC profile for color transformations
 	 * @param intent Intent for color transformations (<code>JCMS.INTENT_*</code>)
 	 * @param blackPointCompensation If <code>true</code>, black point compensation is used for colorimetric relative transformations
-	 * @throws JCMSException If destination profile contains invalid data
+	 * @throws LCMS4JException If destination profile contains invalid data
 	 */
-	public IccTransformer(ICC_Profile destinationProfile, int intent, boolean blackPointCompensation) throws JCMSException {
+	public IccTransformer(ICC_Profile destinationProfile, int intent, boolean blackPointCompensation) throws LCMS4JException {
 		m_destinationProfile = new IccProfile(destinationProfile.getData());
 		m_intent = intent;
-		m_flags = (blackPointCompensation ? JCMS.CMSFLAGS_BLACKPOINTCOMPENSATION : 0);
+		m_flags = (blackPointCompensation ? LCMS4J.CMSFLAGS_BLACKPOINTCOMPENSATION : 0);
 		m_defaultGray = new IccProfile(IccProfile.PROFILE_GRAY);
 		m_defaultRGB = new IccProfile(IccProfile.PROFILE_SRGB);
 		m_defaultCMYK = new IccProfile(IccProfile.PROFILE_FOGRA39);
@@ -72,9 +72,9 @@ public class IccTransformer {
 	 * @param image Original image to be transformed
 	 * @param srcProfile Source ICC profile of the image
 	 * @return Transformed image
-	 * @throws JCMSException if any error occurs during color transformation
+	 * @throws LCMS4JException if any error occurs during color transformation
 	 */
-	public BufferedImage transform(BufferedImage image, ICC_Profile srcProfile) throws JCMSException {
+	public BufferedImage transform(BufferedImage image, ICC_Profile srcProfile) throws LCMS4JException {
 		IccProfile src = null;
 		BufferedImage result;
 		try {
@@ -92,15 +92,14 @@ public class IccTransformer {
 	 * 
 	 * @param srcImage Source image file
 	 * @return the color transformed image
-	 * @throws JCMSException if any error occurs during color transformation
+	 * @throws LCMS4JException if any error occurs during color transformation
 	 */
 	@SuppressWarnings("unused")
-	public BufferedImage transform(File srcImage) throws JCMSException {
+	public BufferedImage transform(File srcImage) throws LCMS4JException {
 		// Validate input image
 		if (srcImage == null) {
-			throw new JCMSException("Source image can not be null.");
+			throw new LCMS4JException("Source image can not be null.");
 		}
-
 		// Read input image data
 		Raster raster = null;
 		int width = 0;
@@ -125,14 +124,12 @@ public class IccTransformer {
 				height = reader.getHeight(0);
 				reader.dispose();
 			}
-						
 		} catch (IOException e) {
 			try {
                 assert reader != null;
                 reader.dispose();} catch (Exception ex) {/*Ignore*/}
-			throw new JCMSException("Unable to read source image raster: "+e.getMessage());
+			throw new LCMS4JException("Unable to read source image raster: "+e.getMessage());
 		}
-		
 		if (raster == null) {
 			try {
 				BufferedImage bi = ImageIO.read(srcImage);
@@ -142,10 +139,9 @@ public class IccTransformer {
 				width = bi.getWidth();
 				height = bi.getHeight();				
 			} catch (IOException e) {
-				throw new JCMSException("Unable to read source image: "+e.getMessage());
+				throw new LCMS4JException("Unable to read source image: "+e.getMessage());
 			}			
 		}
-
         // Read image metadata
 		ImageMetadata md = ImageMetadata.getInstance(srcImage);
 		JPEGMetadata jpmd = null;
@@ -153,34 +149,30 @@ public class IccTransformer {
 			jpmd = (JPEGMetadata) md;
 		}
 		if (md.isIndexed()) {
-			throw new JCMSException("Unsupported input image color model (indexed).");
+			throw new LCMS4JException("Unsupported input image color model (indexed).");
 		}
-		
 		// Determine raster format and default profile
 		int inputFormat = -1;
 		IccProfile inputProfile = null;
 		switch (numBands) {
-		
 			// Grayscale
 			case 1:
 				inputProfile = m_defaultGray;
-				inputFormat = JCMS.TYPE_GRAY_8;
+				inputFormat = LCMS4J.TYPE_GRAY_8;
 				break;
-				
 			// RGB
 			case 3:
 				inputProfile = m_defaultRGB;
-				inputFormat = JCMS.TYPE_RGB_8;
+				inputFormat = LCMS4J.TYPE_RGB_8;
 				if (md.getImageType() == ImageType.JPEG) {
                     assert jpmd != null;
                     if (!jpmd.isAdobeApp14Found() || (jpmd.getAdobeColorTransform() == JPEGMetadata.ADOBE_TRANSFORM_YCbCr)) {
 						convertYCbCrToRGB(rasterData);
 					}
 				} else if (md.getImageType() == ImageType.PNG) {
-					inputFormat = JCMS.TYPE_BGR_8;
+					inputFormat = LCMS4J.TYPE_BGR_8;
 				}
 				break;
-				
 			// CMYK
 			case 4:
 				inputProfile = m_defaultCMYK;
@@ -189,38 +181,36 @@ public class IccTransformer {
                     if (jpmd.isAdobeApp14Found()) {
 						switch (jpmd.getAdobeColorTransform()) {
 							case JPEGMetadata.ADOBE_TRANSFORM_UNKNOWN:
-								inputFormat = JCMS.TYPE_CMYK_8_REV;
+								inputFormat = LCMS4J.TYPE_CMYK_8_REV;
 								break;
 							case JPEGMetadata.ADOBE_TRANSFORM_YCCK:
 								convertYcckToCmyk(rasterData, true);
-								inputFormat = JCMS.TYPE_CMYK_8;
+								inputFormat = LCMS4J.TYPE_CMYK_8;
 								break;
 						}
 					}
 				} else if (md.getImageType() == ImageType.PNG) {
-					inputFormat = JCMS.TYPE_ABGR_8;
+					inputFormat = LCMS4J.TYPE_ABGR_8;
 				} else {
-					inputFormat = JCMS.TYPE_CMYK_8_REV;
+					inputFormat = LCMS4J.TYPE_CMYK_8_REV;
 				}
 				break;
 		}
 		if (inputFormat == -1) {
-			throw new JCMSException("Unsupported input image raster type.");
+			throw new LCMS4JException("Unsupported input image raster type.");
 		}
-		
 		// Generate output BufferedImage
 		int outputType = getBufferedImageType(m_destinationProfile, md.isTransparent());
 		if (outputType == -1) {
-			throw new JCMSException("Unsupported output profile type.");
+			throw new LCMS4JException("Unsupported output profile type.");
 		}
 		BufferedImage output = new BufferedImage(width, height, outputType);
 		byte[] outputData = ((DataBufferByte)output.getRaster().getDataBuffer()).getData();
 		int outputNumBands = output.getRaster().getNumBands();
 		int outputFormat = getJcmsBufferType(output);
 		if (outputFormat == 0) {
-			throw new JCMSException("Unsupported output image type");
+			throw new LCMS4JException("Unsupported output image type");
 		}
-		
 		// Perform transformation
 		boolean usingEmbeddedProfile = false;
 		IccTransform icctransform = null;
@@ -243,7 +233,6 @@ public class IccTransformer {
 					}
 				}
 			}
-			
 			// Perform transformation
 			icctransform = new IccTransform(inputProfile, inputFormat, m_destinationProfile, outputFormat, m_intent, m_flags);
 			byte[] inputBuffer = new byte[width * numBands];
@@ -253,12 +242,10 @@ public class IccTransformer {
 				icctransform.transform(inputBuffer, outputBuffer, width);
 				System.arraycopy(outputBuffer, 0, outputData, line * width * outputNumBands, width * outputNumBands);
 			}
-			
 		} finally {
 			if (icctransform != null) icctransform.dispose();
 			if (usingEmbeddedProfile) inputProfile.dispose();
 		}
-		
 		// Recover transparency
 		if (md.isTransparent()) {
 			for (int y=0; y<height; y++) {
@@ -267,7 +254,6 @@ public class IccTransformer {
 				}
 			}
 		}
-		
 		return output;
 	}
 	
@@ -277,12 +263,11 @@ public class IccTransformer {
 	 * 
 	 * @param srcImage Source image file
 	 * @param dstImage Destination image file
-	 * @throws JCMSException if any error occurs during color transformation
+	 * @throws LCMS4JException if any error occurs during color transformation
 	 */
-	public void transform(File srcImage, File dstImage) throws JCMSException {
+	public void transform(File srcImage, File dstImage) throws LCMS4JException {
 		// Transform source image
 		BufferedImage output = transform(srcImage);
-		
 		// Determine output image type by extension
 		ImageType type = ImageType.JPEG;
 		try {
@@ -293,27 +278,23 @@ public class IccTransformer {
 		} catch (Exception e) {
 			/* Ignore */
 		}
-		
 		// Determine input DPI
 		ImageMetadata md = ImageMetadata.getInstance(srcImage);
 		double dpi = md.getDpiX();
-		
 		// Save output image to file
 		switch (type) {
 			case JPEG:
 				if (!ImageWriter.writeJpeg(output, dstImage, m_jpegQuality, (int)Math.round(dpi), m_destinationProfile.getICC_Profile())) {
-					throw new JCMSException("Unable to write output image");
+					throw new LCMS4JException("Unable to write output image");
 				}
 				break;
-				
 			case PNG:
 				if (!ImageWriter.writePng(output, dstImage, dpi, m_destinationProfile.getICC_Profile())) {
-					throw new JCMSException("Unable to write output image");
+					throw new LCMS4JException("Unable to write output image");
 				}
 				break;
-				
 			default:
-				throw new JCMSException("Unsupported output image type: " + type);
+				throw new LCMS4JException("Unsupported output image type: " + type);
 		}
 	}
 	
@@ -321,15 +302,15 @@ public class IccTransformer {
 	 * Sets the default RGB profile that will be used as source profile for color transformations.
 	 * 
 	 * @param profile Default RGB profile for color transformations
-	 * @throws JCMSException If provided ICC profile is not a valid RGB profile.
+	 * @throws LCMS4JException If provided ICC profile is not a valid RGB profile.
 	 * @throws IllegalArgumentException If <code>profile</code> is <code>null</code>.
 	 */
-	public void setDefaultRGB(ICC_Profile profile) throws JCMSException {
+	public void setDefaultRGB(ICC_Profile profile) throws LCMS4JException {
 		if (profile == null) {
 			throw new IllegalArgumentException("Profile can not be null.");
 		}
 		if (profile.getColorSpaceType() != ColorSpace.TYPE_RGB) {
-			throw new JCMSException("Profile should be in RGB color space.");
+			throw new LCMS4JException("Profile should be in RGB color space.");
 		}
 		m_defaultRGB.dispose();
 		m_defaultRGB = new IccProfile(profile.getData());
@@ -339,15 +320,15 @@ public class IccTransformer {
 	 * Sets the default CMYK profile that will be used as source profile for color transformations.
 	 * 
 	 * @param profile Default CMYK profile for color transformations
-	 * @throws JCMSException If provided ICC profile is not a valid CMYK profile.
+	 * @throws LCMS4JException If provided ICC profile is not a valid CMYK profile.
 	 * @throws IllegalArgumentException If <code>profile</code> is <code>null</code>.
 	 */
-	public void setDefaultCMYK(ICC_Profile profile) throws JCMSException {
+	public void setDefaultCMYK(ICC_Profile profile) throws LCMS4JException {
 		if (profile == null) {
 			throw new IllegalArgumentException("Profile can not be null.");
 		}
 		if (profile.getColorSpaceType() != ColorSpace.TYPE_CMYK) {
-			throw new JCMSException("Profile should be in CMYK color space.");
+			throw new LCMS4JException("Profile should be in CMYK color space.");
 		}
 		m_defaultCMYK.dispose();
 		m_defaultCMYK = new IccProfile(profile.getData());
@@ -357,15 +338,15 @@ public class IccTransformer {
 	 * Sets the default Gray profile that will be used as source profile for color transformations.
 	 * 
 	 * @param profile Default Gray profile for color transformations
-	 * @throws JCMSException If provided ICC profile is not a valid Gray profile.
+	 * @throws LCMS4JException If provided ICC profile is not a valid Gray profile.
 	 * @throws IllegalArgumentException If <code>profile</code> is <code>null</code>.
 	 */
-	public void setDefaultGray(ICC_Profile profile) throws JCMSException {
+	public void setDefaultGray(ICC_Profile profile) throws LCMS4JException {
 		if (profile == null) {
 			throw new IllegalArgumentException("Profile can not be null.");
 		}
 		if (profile.getColorSpaceType() != ColorSpace.TYPE_GRAY) {
-			throw new JCMSException("Profile should be in Gray color space.");
+			throw new LCMS4JException("Profile should be in Gray color space.");
 		}
 		m_defaultGray.dispose();
 		m_defaultGray = new IccProfile(profile.getData());
@@ -431,8 +412,7 @@ public class IccTransformer {
 	 * @param flags Flags that modify transformation algorithm (JCMS.CCFLAGS_*)
 	 * @return Transformed image.
      */
-	public static BufferedImage transform(BufferedImage image, IccProfile src, IccProfile dst, int intent, int flags) throws JCMSException {
-		
+	public static BufferedImage transform(BufferedImage image, IccProfile src, IccProfile dst, int intent, int flags) throws LCMS4JException {
 		// Validate input parameters
 		if (image == null) {
 			throw new IllegalArgumentException("Image must not be null");
@@ -443,50 +423,43 @@ public class IccTransformer {
 		if (dst == null) {
 			throw new IllegalArgumentException("Destination profile must not be null");
 		}
-		
 		// Detect original image type and check if source profile is compatible
 		int inputFormat = getJcmsBufferType(image);
 		if (inputFormat == 0) {
-			throw new JCMSException("Unsupported input image type");
+			throw new LCMS4JException("Unsupported input image type");
 		}
 		if (!isProfileValid(image, src)) {
-			throw new JCMSException("Source profile not compatible with source image type");
+			throw new LCMS4JException("Source profile not compatible with source image type");
 		}
-		
 		// Check input data buffer type
 		int inputDataBufferType = image.getRaster().getDataBuffer().getDataType();
 		if (inputDataBufferType != DataBuffer.TYPE_BYTE) {
-			throw new JCMSException("Unsupported input data buffer type");
+			throw new LCMS4JException("Unsupported input data buffer type");
 		}
-		
 		// Define output image based on destination profile
 		boolean transparency = false;
 		transparency |= (image.getType() == BufferedImage.TYPE_4BYTE_ABGR);
 		transparency |= (image.getType() == BufferedImage.TYPE_4BYTE_ABGR_PRE);
 		int outputImageType = getBufferedImageType(dst, transparency);
 		if (outputImageType == -1) {
-			throw new JCMSException("Unsupported output profile type");
+			throw new LCMS4JException("Unsupported output profile type");
 		}
 		BufferedImage outputImage = new BufferedImage(image.getWidth(), image.getHeight(), outputImageType);
 		int outputFormat = getJcmsBufferType(outputImage);
 		if (outputFormat == 0) {
-			throw new JCMSException("Unsupported output image type");
+			throw new LCMS4JException("Unsupported output image type");
 		}
-		
 		// Perform transformation
 		IccTransform icctransform = null;
 		try {
 			// Generate IccTransform object
 			icctransform = new IccTransform(src, inputFormat, dst, outputFormat, intent, flags);
-			
 			// Prepare data buffers
 			byte[] in = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 			byte[] out = ((DataBufferByte) outputImage.getRaster().getDataBuffer()).getData();
 			int pixels = image.getWidth() * image.getHeight();
-			
 			// Perform transformation
 			icctransform.transform(in, out, pixels);
-			
 			// Recover transparency data
 			if (transparency) {
 				for (int y=0; y<image.getHeight(); y++) {
@@ -495,12 +468,10 @@ public class IccTransformer {
 					}
 				}				
 			}
-			
 		} finally {
 			// Dispose all native resources
 			if (icctransform != null) icctransform.dispose();	
 		}
-		
 		return outputImage;
 	}
 
@@ -514,8 +485,7 @@ public class IccTransformer {
 	 * @param flags Flags that modify transformation algorithm (JCMS.CMSFLAGS_*)
 	 * @return Transformed image.
      */
-	public static BufferedImage transform(BufferedImage image, ICC_Profile src, ICC_Profile dst, int intent, int flags) throws JCMSException {
-		
+	public static BufferedImage transform(BufferedImage image, ICC_Profile src, ICC_Profile dst, int intent, int flags) throws LCMS4JException {
 		IccProfile srcProfile = null;
 		IccProfile dstProfile = null;
 		BufferedImage output = null;
@@ -528,10 +498,8 @@ public class IccTransformer {
 			if (srcProfile != null) srcProfile.dispose();
 			if (dstProfile != null) dstProfile.dispose();
 		}
-		
 		return output;
 	}
-	
 	
 	/**
 	 * Gets JCMS buffer type that fits the raster data of an image
@@ -544,14 +512,14 @@ public class IccTransformer {
 		
 		switch (imageType) {
 			case BufferedImage.TYPE_3BYTE_BGR:
-				bufferType = JCMS.TYPE_BGR_8;
+				bufferType = LCMS4J.TYPE_BGR_8;
 				break;
 			case BufferedImage.TYPE_4BYTE_ABGR:
 			case BufferedImage.TYPE_4BYTE_ABGR_PRE:
-				bufferType = JCMS.TYPE_ABGR_8;
+				bufferType = LCMS4J.TYPE_ABGR_8;
 				break;
 			case BufferedImage.TYPE_BYTE_GRAY:
-				bufferType = JCMS.TYPE_GRAY_8;
+				bufferType = LCMS4J.TYPE_GRAY_8;
 				break;
 			case BufferedImage.TYPE_BYTE_BINARY:
 			case BufferedImage.TYPE_BYTE_INDEXED:
@@ -565,7 +533,6 @@ public class IccTransformer {
 			case BufferedImage.TYPE_USHORT_GRAY:
                 break;
 		}
-		
 		return bufferType;
 	}
 
@@ -612,7 +579,6 @@ public class IccTransformer {
                     break;
 			}
 		}
-		
 		return bufferedImageType;
 	}
 	
@@ -626,7 +592,6 @@ public class IccTransformer {
 	 */
 	private static boolean isProfileValid(BufferedImage image, IccProfile profile) {
 		boolean profileValid = false;
-		
 		// Get profile and image types
 		ICC_Profile javaProfile = profile.getICC_Profile();
 		if (javaProfile == null) {
@@ -634,7 +599,6 @@ public class IccTransformer {
 		}
 		int profileType = javaProfile.getColorSpaceType();
 		int imageType = image.getType();
-		
 		// Check
 		switch (imageType) {
 			case BufferedImage.TYPE_3BYTE_BGR:
@@ -659,8 +623,7 @@ public class IccTransformer {
 		}
 		return profileValid;
 	}
-	
-	
+
 	/**
 	 * Transforms YCCK raster data to non-inverted CMYK data.
 	 * 
@@ -715,8 +678,7 @@ public class IccTransformer {
 			ycbcr[3*i]   = (byte)(red & 0xFF);
 			ycbcr[3*i+1] = (byte)(green & 0xFF);
 			ycbcr[3*i+2] = (byte)(blue & 0xFF);
-
-		}		
+		}
 	}
 	
 	/**
@@ -745,6 +707,4 @@ public class IccTransformer {
 	public void setJpegQuality(float jpegQuality) {
 		m_jpegQuality = Math.max(0, Math.min(1, jpegQuality));
 	}
-
-
 }

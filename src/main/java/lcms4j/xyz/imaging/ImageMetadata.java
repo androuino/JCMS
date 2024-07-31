@@ -1,19 +1,13 @@
-package com.gmail.etordera.imaging;
-
-import java.awt.color.ICC_Profile;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+package lcms4j.xyz.imaging;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import java.awt.color.ICC_Profile;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Extract metadata from image files..<br>
@@ -40,7 +34,6 @@ import javax.imageio.stream.ImageInputStream;
  * </pre>
  */
 public class ImageMetadata {
-
 	/** PNG signature bytes. */
 	private static final int[] PNG_SIGNATURE = {137, 80, 78, 71, 13, 10, 26, 10};
 	/** JPEG signature bytes. */
@@ -51,19 +44,17 @@ public class ImageMetadata {
 	private static final int[] TIFF_LE_SIGNATURE = {0x49, 0x49, 0x2A, 0x00};
 	/** TIFF (big-endian) signature bytes. */
 	private static final int[] TIFF_BE_SIGNATURE = {0x4D, 0x4D, 0x00, 0x2A};
-	
 
 	/** List of known file signatures. */
-	private static HashMap<ImageType, int[]> s_signatures = new HashMap<>();	
+	private static final HashMap<ImageType, int[]> s_signatures = new HashMap<>();
 	static {
 		s_signatures.put(ImageType.PNG, PNG_SIGNATURE);
-		s_signatures.put(ImageType.JPEG, JPEG_SIGNATURE);		
-		s_signatures.put(ImageType.BMP, BMP_SIGNATURE);		
-		s_signatures.put(ImageType.TIFF_LE, TIFF_LE_SIGNATURE);		
-		s_signatures.put(ImageType.TIFF_BE, TIFF_BE_SIGNATURE);		
+		s_signatures.put(ImageType.JPEG, JPEG_SIGNATURE);
+		s_signatures.put(ImageType.BMP, BMP_SIGNATURE);
+		s_signatures.put(ImageType.TIFF_LE, TIFF_LE_SIGNATURE);
+		s_signatures.put(ImageType.TIFF_BE, TIFF_BE_SIGNATURE);
 	}
-	
-	
+
 	/** Detected image type. */
 	private ImageType m_imageType = ImageType.UNKNOWN;
 	/** Image width (px). */
@@ -97,23 +88,19 @@ public class ImageMetadata {
 					md = jpeg;
 				}
 				break;
-				
 			case PNG:
 				PNGMetadata png = new PNGMetadata();
 				if (png.load(file)) {
 					md = png;
 				}
 				break;
-				
 			default:
 				md.loadPixelSize(file);
 				break;				
 		}
-		
 		return md;
 	}
 		
-	
 	/**
 	 * Detects image type.
 	 * @param file File under test.
@@ -144,7 +131,6 @@ public class ImageMetadata {
 		}
 		return imageType;
 	}
-	
 
 	/**
 	 * Gets ICC profile embedded in an image file.
@@ -155,7 +141,6 @@ public class ImageMetadata {
 		return getIccProfile(new File(imagePath));
 	}
 	
-
 	/**
 	 * Gets ICC profile embedded in an image file.
 	 * @param imageFile Image file.
@@ -165,8 +150,7 @@ public class ImageMetadata {
 		ImageMetadata md = getInstance(imageFile);
 		return md.getIccProfile();
 	}
-	
-	
+
 	/**
 	 * Gets the detected image type.
 	 * @return Detected image type.
@@ -175,7 +159,6 @@ public class ImageMetadata {
 		return m_imageType;
 	}
 
-	
 	/**
 	 * Sets the detected image type.
 	 * @param imageType Detected image type.
@@ -184,27 +167,24 @@ public class ImageMetadata {
 		m_imageType = imageType;
 	}
 
-	
 	/**
-	 * Gets imatge width.
+	 * Gets image width.
 	 * @return Image width (px), or <code>0</code> if not detected.
 	 */
 	public int getWidth() {
 		return m_width;
 	}
 
-	
 	/**
-	 * Gets imatge height.
+	 * Gets image height.
 	 * @return Image height (px), or <code>0</code> if not detected.
 	 */
 	public int getHeight() {
 		return m_height;
 	}
 
-
 	/**
-	 * Detects and sotres pixel dimensions of an image file. 
+	 * Detects and stores pixel dimensions of an image file.
 	 * @param imageFile Image file under analysis.
 	 */
 	protected void loadPixelSize(File imageFile) {
@@ -221,14 +201,12 @@ public class ImageMetadata {
 	            reader.dispose();
 		    }
 		    is.close();
-		    
 		} catch (Exception e) {
 			if (reader != null) try {reader.dispose();} catch (Exception ex) {/* Ignore */}
 			if (is != null) try {is.close();} catch (Exception ex) {/* Ignore */}
 		}		
 	}
-	
-	
+
 	/**
 	 * Gets color depth.
 	 * @return Color depth as number of bits, or <code>0</code> if not detected.
@@ -237,7 +215,6 @@ public class ImageMetadata {
 		return 0;
 	}
 
-	
 	/** 
 	 * Tells whether the image is in grayscale mode.
 	 * @return <code>true</code> if image is in grayscale mode, <code>false</code>otherwise.
@@ -245,7 +222,6 @@ public class ImageMetadata {
 	public boolean isGreyscale() {
 		return false;
 	}
-	
 
 	/** 
 	 * Tells whether the image is in RGB mode.
@@ -255,8 +231,7 @@ public class ImageMetadata {
 		return false;
 	}
 
-	
-	/** 
+	/**
 	 * Tells whether the image is in indexed mode.
 	 * @return <code>true</code> if image is in indexed mode, <code>false</code>otherwise.
 	 */
@@ -264,7 +239,6 @@ public class ImageMetadata {
 		return false;
 	}
 
-	
 	/** 
 	 * Tells whether the image is in CMYK mode.
 	 * @return <code>true</code> if image is in CMYK mode, <code>false</code>otherwise.
@@ -273,7 +247,6 @@ public class ImageMetadata {
 		return false;
 	}
 
-	
 	/** 
 	 * Tells whether the image has transparency data (alpha channel).
 	 * @return <code>true</code> if image has transparency data, <code>false</code>otherwise.
@@ -289,8 +262,7 @@ public class ImageMetadata {
 	public ICC_Profile getIccProfile() {
 		return null;
 	}
-	
-	
+
 	/**
 	 * Gets orientation of image pixels.
 	 * @return Orientation of image pixels.
@@ -298,17 +270,15 @@ public class ImageMetadata {
 	public ImageOrientation getOrientation() {
 		return ImageOrientation.TOP;
 	}
-	
-	
+
 	/**
-	 * Tells wheter an embedded thumbnail was detected.
+	 * Tells whether an embedded thumbnail was detected.
 	 * @return <code>true</code> if an embedded thumbnail was detected, <code>false</code> otherwise.
 	 */
 	public boolean hasThumbnail() {
 		return false;
 	}
-	
-	
+
 	/**
 	 * Generates a stream for getting embedded thumbnail data.
 	 * @return stream for getting embedded thumbnail data, or <code>null</code> if thumbnail was not detected.
@@ -317,7 +287,6 @@ public class ImageMetadata {
 		return null;
 	}
 
-	
 	/**
 	 * Gets image horizontal resolution.
 	 * @return Image horizontal resolution (dpi), or <code>0</code> if not detected.
@@ -326,7 +295,6 @@ public class ImageMetadata {
 		return 0;
 	}
 
-	
 	/**
 	 * Gets image vertical resolution.
 	 * @return Image vertical resolution (dpi), or <code>0</code> if not detected.
@@ -334,7 +302,6 @@ public class ImageMetadata {
 	public double getDpiY() {
 		return 0;
 	}
-	
 	
 	/**
 	 * Reads a number of bytes from a stream.
@@ -355,5 +322,4 @@ public class ImageMetadata {
 		}
 		return result;
 	}
-	
 }

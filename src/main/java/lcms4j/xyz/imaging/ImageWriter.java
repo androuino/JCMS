@@ -1,8 +1,4 @@
-package com.gmail.etordera.imaging;
-
-import java.awt.color.ICC_Profile;
-import java.awt.image.BufferedImage;
-import java.io.File;
+package lcms4j.xyz.imaging;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -11,6 +7,9 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageOutputStream;
+import java.awt.color.ICC_Profile;
+import java.awt.image.BufferedImage;
+import java.io.File;
 
 /**
  * Utility class for writing images to disk.
@@ -25,7 +24,7 @@ public class ImageWriter {
 	 * @param file Destination file.
 	 * @param quality JPEG compression quality: <code>0</code> (minimum quality) to <code>1</code> maximum. 
 	 * @param dpi Resolution to be included in JPEG metadata (dots per inch)
-	 * @param profile ICC profile to be embedded in JPEG metadata (may be <code>null</code>)
+	 * @param profile ICC profile to be embedded in JPEG metadata (maybe <code>null</code>)
 	 * @return <code>true</code> on success, <code>false</code> on error
 	 */
 	public static boolean writeJpeg(BufferedImage image, File file, float quality, int dpi, ICC_Profile profile) {
@@ -58,15 +57,15 @@ public class ImageWriter {
 			writer.dispose();
 			
 		} catch (Exception e) {
-			try {writer.dispose();} catch (Exception ex) {/*Ignore*/}
+			try {
+                assert writer != null;
+                writer.dispose();} catch (Exception ex) {/*Ignore*/}
 			return false;
 		}
 
 		// Embed ICC profile
 		if (profile != null)  {
-			if (!JPEGMetadata.embedIccProfile(profile, file.getAbsolutePath())) {
-				return false;
-			}
+            return JPEGMetadata.embedIccProfile(profile, file.getAbsolutePath());
 		}
 		
 		return true;
@@ -79,7 +78,7 @@ public class ImageWriter {
 	 * @param image Image to write.
 	 * @param file Destination file.
 	 * @param dpi Resolution to be included in PNG metadata (dots per inch), <code>0</code> for none.
-	 * @param profile ICC profile to be embedded in JPEG metadata (may be <code>null</code>)
+	 * @param profile ICC profile to be embedded in JPEG metadata (maybe <code>null</code>)
 	 * @return <code>true</code> on success, <code>false</code> on error
 	 */
 	public static boolean writePng(BufferedImage image, File file, double dpi, ICC_Profile profile) {
