@@ -40,11 +40,11 @@ tasks.register('jni', Exec) {
 	def libPrefix = 'lib'
 	def libSuffix = '.so'
 	def compilerFlags = '-fPIC'
-	def compilerInclude = '-I' + jdk_home + '/include'
+	def compilerInclude = '-I' + jdk_home + '/java-11-openjdk-amd64/include'
 	def compilerInclude2 = ''
 	if (osName.contains('linux')) {
 		libOs = 'linux'
-		compilerInclude2 = '-I' + jdk_home + '/include/linux'
+		compilerInclude2 = '-I' + jdk_home + '/java-11-openjdk-amd64/include/linux'
 	} else if (osName.contains("windows")) {
 		libOs = "windows";
 		libPrefix = "libwin";

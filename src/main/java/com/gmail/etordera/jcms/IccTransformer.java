@@ -76,7 +76,7 @@ public class IccTransformer {
 	 */
 	public BufferedImage transform(BufferedImage image, ICC_Profile srcProfile) throws JCMSException {
 		IccProfile src = null;
-		BufferedImage result = null;
+		BufferedImage result;
 		try {
 			src = new IccProfile(srcProfile.getData());
 			result = transform(image, src, m_destinationProfile, m_intent, m_flags);
@@ -650,15 +650,13 @@ public class IccTransformer {
 				break;
 			case BufferedImage.TYPE_BYTE_GRAY:
 			case BufferedImage.TYPE_USHORT_GRAY:
-				profileValid = (profileType == ColorSpace.TYPE_GRAY);
+                profileValid = (profileType == ColorSpace.TYPE_GRAY);
 				break;
-	
 			case BufferedImage.TYPE_BYTE_BINARY:
 			case BufferedImage.TYPE_BYTE_INDEXED:
 			case BufferedImage.TYPE_CUSTOM:
                 break;
 		}
-		
 		return profileValid;
 	}
 	

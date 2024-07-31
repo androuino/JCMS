@@ -48,9 +48,10 @@ public class JCMS {
 			if (osName.contains("windows")) {
 				System.loadLibrary(WINDOWS_NATIVE_LIBRARY);
 			} else if (osName.contains("mac")) {
-				System.setProperty("java.library.path", "resources/com/gmail/etordera/jcms/lib");
+				System.setProperty("java.library.path", "resources/com/gmail/etordera/jcms/lib/mac64");
 				System.loadLibrary(MAC_NATIVE_LIBRARY);
 			} else if (osName.contains("linux")) {
+				System.setProperty("java.library.path", "resources/com/gmail/etordera/jcms/lib/linux64");
 				System.loadLibrary(LINUX_NATIVE_LIBRARY);
 			} else {
 				System.loadLibrary(LINUX_NATIVE_LIBRARY);

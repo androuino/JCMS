@@ -36,7 +36,7 @@ public class IccTransformerTest {
 		String resourcesPath = "src/test/resources/";
 		File inputFolder = new File(resourcesPath + "input");
 		File outputFolder = new File(resourcesPath + "output");
-		File expectedFolder = new File(resourcesPath + "expected-orig");
+		File expectedFolder = new File(resourcesPath + "expected");
 		
 		// Check paths
 		assertTrue("Input folder missing.", inputFolder.isDirectory());
@@ -58,9 +58,7 @@ public class IccTransformerTest {
 		try {
 			destProfile = new IccProfile(IccProfile.PROFILE_ADOBERGB);
 			transformer = new IccTransformer(destProfile.getICC_Profile(), JCMS.INTENT_RELATIVE_COLORIMETRIC, true);
-			File[] inputFiles = inputFolder.listFiles((dir, name)->{
-				return name.toLowerCase().matches(".*\\.(jpe?g|png)");
-			});
+			File[] inputFiles = inputFolder.listFiles((dir, name)-> name.toLowerCase().matches(".*\\.(jpe?g|png)"));
             assert inputFiles != null;
             for (File in : inputFiles) {
 				File out = new File(outputFolder, "converted-" + in.getName());
@@ -102,7 +100,7 @@ public class IccTransformerTest {
 		String resourcesPath = "src/test/resources/";
 		File inputFolder = new File(resourcesPath + "input");
 		File outputFolder = new File(resourcesPath + "output/file-icc");
-		File expectedFolder = new File(resourcesPath + "expected-orig");
+		File expectedFolder = new File(resourcesPath + "expected");
 		
 		// Check paths
 		assertTrue("Input folder missing.", inputFolder.isDirectory());
@@ -126,20 +124,18 @@ public class IccTransformerTest {
 			srgb = new IccProfile(IccProfile.PROFILE_SRGB);
 			destProfile = new IccProfile(IccProfile.PROFILE_ADOBERGB);
 			transformer = new IccTransformer(destProfile.getICC_Profile(), JCMS.INTENT_RELATIVE_COLORIMETRIC, true);
-			File[] inputFiles = inputFolder.listFiles((dir, name)->{
-				return name.toLowerCase().matches(".*\\.(jpe?g|png)") && !name.toLowerCase().contains("fogra");
-			});
+			File[] inputFiles = inputFolder.listFiles((dir, name)-> name.toLowerCase().matches(".*\\.(jpe?g|png)") && !name.toLowerCase().contains("fogra"));
             assert inputFiles != null;
             for (File in : inputFiles) {
 				File out = new File(outputFolder, "converted-" + in.getName());
 				System.out.print("Transform " + in.getName() + " to " + out.getName() + "...");
 				
 				ImageMetadata md = ImageMetadata.getInstance(in);
-				//ICC_Profile profile = md.getIccProfile();
+				ICC_Profile profile = md.getIccProfile();
 				
 				BufferedImage image = ImageIO.read(in);
 				assertNotNull("Unable to load image: " + in.getAbsolutePath(), image);
-				image = transformer.transform(image, srgb.getICC_Profile());
+				image = transformer.transform(image, profile == null ? srgb.getICC_Profile() : profile);
 
 				switch (md.getImageType()) {
 					case PNG:
