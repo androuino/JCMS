@@ -83,7 +83,6 @@ public class JCMS {
 					libDir = Files.createTempDirectory("jcmstmp");
 					tempFiles = true;
 				}
-				
 				// Delete temp files on exit
 				if (tempFiles) {
 					libDir.toFile().deleteOnExit();
