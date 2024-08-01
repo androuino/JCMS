@@ -67,7 +67,6 @@ public class IccTransformerTest {
 			}
 		} catch (LCMS4JException e) {
 			fail("LCMS4J Exception: " + e.getMessage());
-			
 		} finally {
 			if (transformer != null) transformer.dispose();
 			if (destProfile != null) destProfile.dispose();

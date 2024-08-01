@@ -140,7 +140,8 @@ tasks.named<Delete>("clean") {
 
 tasks.test {
 	// Set the java.library.path system property to the directory where the .so file is generated
-	systemProperty("java.library.path", file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").absolutePath)
+	//systemProperty("java.library.path", file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").absolutePath)
+	systemProperty("java.library.path", file("src/main/resources/lib").absolutePath)
 	//println("Native library path: " + file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").absolutePath)
 	if (file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").exists()) {
 		println("Native library path exists!")

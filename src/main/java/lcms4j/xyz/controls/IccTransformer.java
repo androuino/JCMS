@@ -15,10 +15,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import lcms4j.xyz.LCMS4J;
-import lcms4j.xyz.imaging.ImageMetadata;
-import lcms4j.xyz.imaging.ImageType;
-import lcms4j.xyz.imaging.ImageWriter;
-import lcms4j.xyz.imaging.JPEGMetadata;
+import lcms4j.xyz.imaging.*;
 
 /**
  * An <code>IccTransformer</code> performs ICC color transformation on images.<br><br>
@@ -268,6 +265,7 @@ public class IccTransformer {
 	public void transform(File srcImage, File dstImage) throws LCMS4JException {
 		// Transform source image
 		BufferedImage output = transform(srcImage);
+
 		// Determine output image type by extension
 		ImageType type = ImageType.JPEG;
 		try {
@@ -278,9 +276,11 @@ public class IccTransformer {
 		} catch (Exception e) {
 			/* Ignore */
 		}
+
 		// Determine input DPI
 		ImageMetadata md = ImageMetadata.getInstance(srcImage);
 		double dpi = md.getDpiX();
+
 		// Save output image to file
 		switch (type) {
 			case JPEG:
@@ -288,11 +288,13 @@ public class IccTransformer {
 					throw new LCMS4JException("Unable to write output image");
 				}
 				break;
+
 			case PNG:
 				if (!ImageWriter.writePng(output, dstImage, dpi, m_destinationProfile.getICC_Profile())) {
 					throw new LCMS4JException("Unable to write output image");
 				}
 				break;
+
 			default:
 				throw new LCMS4JException("Unsupported output image type: " + type);
 		}

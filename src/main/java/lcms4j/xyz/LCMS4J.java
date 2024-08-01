@@ -58,7 +58,6 @@ public class LCMS4J {
 				//fieldSysPath.set(null, null);
 				System.loadLibrary(MAC_NATIVE_LIBRARY);
 			} else if (osName.contains("linux")) {
-				//System.setProperty("java.library.path", "src/main/resources/lcms4j/xyz/lib/linux64");
 				System.loadLibrary(LINUX_NATIVE_LIBRARY);
 			} else {
 				System.loadLibrary(LINUX_NATIVE_LIBRARY);

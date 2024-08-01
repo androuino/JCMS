@@ -134,7 +134,7 @@ public class JPEGMetadata extends ImageMetadata {
 	 */
 	public boolean load(File jpegFile) {
 		m_filename = jpegFile.getAbsolutePath();
-		boolean result = readMetadata();
+        boolean result = readMetadata();
 		if (!result) {
 			System.err.println("Error while loading JPEG metadata: " + jpegFile.getAbsolutePath());
 		} else {
@@ -214,7 +214,7 @@ public class JPEGMetadata extends ImageMetadata {
 		byte[] buffer;
 
 		try (FileInputStream fis = new FileInputStream(m_filename)) {
-						
+
 			// Read start marker
 			if (!Arrays.equals(SOI, readBytes(fis, 2))) {
 				throw new Exception("Not a JPEG image (SOI marker not found).");
@@ -224,8 +224,8 @@ public class JPEGMetadata extends ImageMetadata {
 			long markerLength;
 			long markerStart;
 			boolean finished = false;
-			m_iccPositions = new Vector<>();
-			m_iccSizes = new Vector<>();
+			m_iccPositions = new Vector<Long>();
+			m_iccSizes = new Vector<Long>();
 			while (!finished) {
 				buffer = readBytes(fis, 2);
 				if (buffer[0] != (byte)0xFF) {
@@ -247,7 +247,7 @@ public class JPEGMetadata extends ImageMetadata {
 						}
 						fis.getChannel().position(markerStart+markerLength);
 						break;
-										
+
 					case JPEG_MARKER_APP1:
 						markerStart = fis.getChannel().position();
 						buffer = readBytes(fis, 2);
@@ -276,12 +276,16 @@ public class JPEGMetadata extends ImageMetadata {
 								long exifValueOffset = exifReadValue(subArray(buffer,8,12),littleEndian,exifType,exifCount);
 								if (exifTag == 0x0112) {
 									m_orientation = exifValueOffset;
+
 								} else if (exifTag == 0x8769) {
 									exifIFDoffset = exifValueOffset;
+
 								} else if (exifTag == 0x13e) {
 									whitePointOffset = exifValueOffset;
+
 								} else if (exifTag == 0x13f) {
 									primariesOffset = exifValueOffset;
+
 								} else if (exifTag == 0x011A || exifTag == 0x011B) {
 									// X Resolution / Y Resolution
 									long currentPos = fis.getChannel().position();
@@ -294,7 +298,7 @@ public class JPEGMetadata extends ImageMetadata {
 									} else {
 										m_dpiY = dpi;
 									}
-									fis.getChannel().position(currentPos);								
+									fis.getChannel().position(currentPos);
 								}
 							}
 							// Read IFD1 offset
@@ -318,38 +322,38 @@ public class JPEGMetadata extends ImageMetadata {
 
 							// Check AdobeRGB white point and primaries
 							if (m_exifColorSpace == EXIF_CS_UNKNOWN) {
-								long[] rationals = new long[16];
-                                for (int r=0; r<16; r++) rationals[r] = 0;
+								long rationals[] = new long[16];
+								for (int r=0; r<16; r++) rationals[r] = 0;
 
-                                if (whitePointOffset != 0) {
-                                	fis.getChannel().position(exifStart+whitePointOffset);
-                                	buffer = readBytes(fis, 16);
-                                    for (int wp=0; wp<4; wp++) {
-                                    	rationals[wp] = exifReadLong(subArray(buffer,wp*4,wp*4+4),littleEndian);
-                                    }
-                                }       
+								if (whitePointOffset != 0) {
+									fis.getChannel().position(exifStart+whitePointOffset);
+									buffer = readBytes(fis, 16);
+									for (int wp=0; wp<4; wp++) {
+										rationals[wp] = exifReadLong(subArray(buffer,wp*4,wp*4+4),littleEndian);
+									}
+								}
 
-                                if (primariesOffset != 0) {
-                                	fis.getChannel().position(exifStart+primariesOffset);
-                                	buffer = readBytes(fis, 48);
-                                    for (int p=0; p<12; p++) {
-                                    	rationals[4+p] = exifReadLong(subArray(buffer,p*4,p*4+4),littleEndian);
-                                    }
-                                }       
+								if (primariesOffset != 0) {
+									fis.getChannel().position(exifStart+primariesOffset);
+									buffer = readBytes(fis, 48);
+									for (int p=0; p<12; p++) {
+										rationals[4+p] = exifReadLong(subArray(buffer,p*4,p*4+4),littleEndian);
+									}
+								}
 
-                                long[] adobeRGBRationals = {313,1000,329,1000,64,100,33,100,21,100,71,100,15,100,6,100};
-                                boolean isAdobeRGB = true;
-                                for (int cmp=0; cmp<16; cmp++) {
-                                    if (rationals[cmp] != adobeRGBRationals[cmp]) {
-                                            isAdobeRGB = false;
-                                            break;
-                                    }
-                                }
-                                if (isAdobeRGB) {
-                                	m_exifColorSpace = EXIF_CS_ADOBERGB;
-                                }					
+								long adobeRGBrationals[] = {313,1000,329,1000,64,100,33,100,21,100,71,100,15,100,6,100};
+								boolean isAdobeRGB = true;
+								for (int cmp=0; cmp<16; cmp++) {
+									if (rationals[cmp] != adobeRGBrationals[cmp]) {
+										isAdobeRGB = false;
+										break;
+									}
+								}
+								if (isAdobeRGB) {
+									m_exifColorSpace = EXIF_CS_ADOBERGB;
+								}
 							}
-							
+
 							// Read thumbnail data (IFD1)
 							if (IFD1offset != 0) {
 								fis.getChannel().position(exifStart+IFD1offset);
@@ -393,9 +397,9 @@ public class JPEGMetadata extends ImageMetadata {
 							m_adobeApp14Found = true;
 							m_adobeTransform = buffer[5];
 						}
-						fis.getChannel().position(markerStart+markerLength);						
+						fis.getChannel().position(markerStart+markerLength);
 						break;
-												
+
 					case JPEG_MARKER_APP3:
 					case JPEG_MARKER_APP4:
 					case JPEG_MARKER_APP5:
@@ -410,7 +414,7 @@ public class JPEGMetadata extends ImageMetadata {
 					case JPEG_MARKER_APP15:
 						buffer = readBytes(fis, 2);
 						markerLength = (0xFF & buffer[0])*256 + (0xFF & buffer[1]);
-						//fis.skip(markerLength-2); // fixme: compiler says, this will be ignored
+						fis.skip(markerLength-2);
 						break;
 
 					default:
@@ -418,11 +422,11 @@ public class JPEGMetadata extends ImageMetadata {
 						break;
 				}
 			}
-			
+
 		} catch (Exception e) {
 			return false;
 		}
-		
+
 		return true;
 	}
 	
@@ -710,17 +714,17 @@ public class JPEGMetadata extends ImageMetadata {
 	 * @return <code>true</code> on success, <code>false</code> on failure
 	 */
 	public static boolean embedIccProfile(ICC_Profile iccProfile, String imagePath) {
-	
+
 		// Determine location of current APP2 ICC Profile markers
 		byte[] buffer = new byte[256];
-		Vector<Long> APP2Positions = new Vector<>();
-		Vector<Long> APP2Lengths = new Vector<>();
+		Vector<Long> APP2Positions = new Vector<Long>();
+		Vector<Long> APP2Lengths = new Vector<Long>();
 		FileInputStream fis = null;
 		FileOutputStream os = null;
 		File tempFile = null;
 		try {
 			fis = new FileInputStream(imagePath);
-			
+
 			// Check SOI marker
 			if (fis.read(buffer,0,2) != 2) {
 				fis.close();
@@ -785,7 +789,7 @@ public class JPEGMetadata extends ImageMetadata {
 							return false;
 						}
 						markerLength = (0xFF & buffer[0])*256 + (0xFF & buffer[1]);
-						//fis.skip(markerLength-2); // fixme: skip result is ignored
+						fis.skip(markerLength-2);
 						break;
 
 					default:
@@ -793,15 +797,15 @@ public class JPEGMetadata extends ImageMetadata {
 						break;
 				}
 			}
-			fis.getChannel().position(0);	
+			fis.getChannel().position(0);
 
 			// Generate new JPEG in temp file
 			tempFile = File.createTempFile("temp", ".jpg");
 			os = new FileOutputStream(tempFile);
-			
+
 			// Copy SOI
 			fis.getChannel().transferTo(0, 2, os.getChannel());
-			
+
 			// Insert new APP2 markers
 			byte[] profileData = iccProfile.getData();
 			int remainingIccBytes = profileData.length;
@@ -821,31 +825,27 @@ public class JPEGMetadata extends ImageMetadata {
 				chunkCount++;
 				remainingIccBytes -= bytesToWrite;
 			}
-			
+
 			// TODO: Copy rest of original JPEG, skipping old APP2 markers
 			fis.getChannel().transferTo(2, fis.getChannel().size()-2, os.getChannel());
-			
+
 			// Finish read and write
 			fis.close();
 			os.close();
-			
+
 			// Replace old image file with temp file
 			File oldImage = new File(imagePath);
 			Files.copy(tempFile.toPath(), oldImage.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			Files.delete(tempFile.toPath());
-			
+
 		} catch (Exception e) {
-			System.err.println(e.getMessage());
-			try {
-                assert fis != null;
-                fis.close();} catch (Exception ex) {/*Ignore*/}
-			try {
-                assert os != null;
-                os.close();} catch (Exception ex) {/*Ignore*/}
-            //tempFile.delete(); // fixme: delete() is ignored
+			e.printStackTrace();
+			try {fis.close();} catch (Exception ex) {/*Ignore*/}
+			try {os.close();} catch (Exception ex) {/*Ignore*/}
+			if (tempFile != null) tempFile.delete();
 			return false;
-		}	
-		
+		}
+
 		return true;
 	}
 	

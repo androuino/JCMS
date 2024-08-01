@@ -48,26 +48,26 @@ public class ImageWriter {
 				IIOMetadataNode jfif = (IIOMetadataNode) tree.getElementsByTagName("app0JFIF").item(0);
 				jfif.setAttribute("Xdensity", Integer.toString(dpi));
 				jfif.setAttribute("Ydensity", Integer.toString(dpi));
-				jfif.setAttribute("resUnits", "1");	
+				jfif.setAttribute("resUnits", "1");
 				data.setFromTree("javax_imageio_jpeg_image_1.0", tree);
 			}
-			
+
 			// Write
 			writer.write(null,new IIOImage(image,null,data),params);
 			writer.dispose();
-			
+
 		} catch (Exception e) {
-			try {
-                assert writer != null;
-                writer.dispose();} catch (Exception ex) {/*Ignore*/}
+			try {writer.dispose();} catch (Exception ex) {/*Ignore*/}
 			return false;
 		}
 
 		// Embed ICC profile
 		if (profile != null)  {
-            return JPEGMetadata.embedIccProfile(profile, file.getAbsolutePath());
+			if (!JPEGMetadata.embedIccProfile(profile, file.getAbsolutePath())) {
+				return false;
+			}
 		}
-		
+
 		return true;
 	}
 
