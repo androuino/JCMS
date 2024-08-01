@@ -15,12 +15,10 @@ repositories {
 
 dependencies {
 	testImplementation("junit:junit:4.13.1")
-	//testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-	//testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
 
 // Task to generate JNI headers
-tasks.register<Exec>("headers") {
+val headers = tasks.register<Exec>("headers") {
 	description = "Generates JNI .h header files"
 
 	val javaFile = file("src/main/java/lcms4j/xyz/LCMS4J.java")
@@ -51,9 +49,9 @@ var libArch = ""
 var libOS = ""
 
 // Task to compile JNI shared object
-tasks.register<Exec>("jni") {
+val jni = tasks.register<Exec>("jni") {
 	description = "Compiles JNI shared object which will allow access to native libraries."
-	dependsOn(tasks.named("headers"))
+	dependsOn(headers)
 
 	val jdkHome = file(System.getProperty("java.home")).parentFile
 	println("JDK Home: $jdkHome")
@@ -98,7 +96,6 @@ tasks.register<Exec>("jni") {
 	val libPath = "$libDir/$libPrefix" + "lcms4j" + libSuffix
 
 	inputs.dir("src/jni/cpp")
-	outputs.file(file(libPath))
 
 	doFirst {
 		file(libDir).mkdirs()
@@ -118,10 +115,35 @@ tasks.register<Exec>("jni") {
 		"src/jni/cpp/jcms.cpp",
 		"-llcms2"
 	)
+	outputs.file(file(libPath))
+}
+
+tasks.register<Copy>("copyLibFile") {
+	dependsOn(jni)
+	val libMainDir = "src/main/resources/lcms4j/xyz/lib"
+	val osArch = System.getProperty("os.arch")
+	val libArch = if (osArch.contains("64")) "64" else "32"
+	val osName = System.getProperty("os.name").toLowerCase()
+	val libOs = when {
+		osName.contains("linux") -> "linux"
+		osName.contains("windows") -> "windows"
+		osName.contains("mac") || osName.contains("darwin") -> "mac"
+		else -> throw IllegalArgumentException("Unsupported OS: $osName")
+	}
+	val libDir = "$libMainDir/$libOs$libArch"
+	val libPath = "$libDir/${when (libOs) {
+		"linux" -> "liblcms4j.so"
+		"windows" -> "libwinlcms4j.dll"
+		"mac" -> "libmaclcms4j.dylib"
+		else -> throw IllegalArgumentException("Unsupported OS: $osName")
+	}}"
+	from(libPath)
+	into("src/main/resources/lib")
 }
 
 tasks.named<ProcessResources>("processResources") {
-	dependsOn(tasks.named("jni"))
+	//dependsOn(tasks.named("jni"))
+	dependsOn(tasks.named("copyLibFile"))
 }
 
 tasks.register<Zip>("zipsrc") {
@@ -140,10 +162,8 @@ tasks.named<Delete>("clean") {
 
 tasks.test {
 	// Set the java.library.path system property to the directory where the .so file is generated
-	//systemProperty("java.library.path", file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").absolutePath)
 	systemProperty("java.library.path", file("src/main/resources/lib").absolutePath)
-	//println("Native library path: " + file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").absolutePath)
-	if (file("src/main/resources/lcms4j/xyz/lib/$libOS$libArch").exists()) {
+	if (file("src/main/resources/lib/$libOS$libArch").exists()) {
 		println("Native library path exists!")
 	}
 }
