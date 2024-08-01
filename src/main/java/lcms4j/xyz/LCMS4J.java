@@ -1,9 +1,6 @@
 package lcms4j.xyz;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.Runtime;
 import java.lang.Throwable;
 import java.lang.reflect.Field;
@@ -36,9 +33,7 @@ public class LCMS4J {
 	/** Version number for LCMS4J library. */
 	private static final String VERSION = "1.0";
 	/** Name of system property for native library path. */
-	private static final String LINUX_NATIVE_LIBRARY = "lcms4j";
-	private static final String MAC_NATIVE_LIBRARY = "maclcms4j";
-	private static final String WINDOWS_NATIVE_LIBRARY = "winlcms4j";
+	private static final String NATIVE_LIBRARY_NAME = "lcms4j";
 	/** Path to temp dir where native libraries are extracted to during runtime */
 	private static String m_tempDir = null;
 
@@ -46,27 +41,12 @@ public class LCMS4J {
 	static {
 		try {
 			// Try to load library in current library path
-			String osName = System.getProperty("os.name").toLowerCase();
-			if (osName.contains("windows")) {
-				System.loadLibrary(WINDOWS_NATIVE_LIBRARY);
-			} else if (osName.contains("mac")) {
-				File path = new File("src/main/resources/lcms4j/xyz/lib/mac64");
-				System.setProperty("java.library.path", path.getAbsolutePath());
-				// Use reflection to update the field that holds the paths
-				//Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
-				//fieldSysPath.setAccessible(true);
-				//fieldSysPath.set(null, null);
-				System.loadLibrary(MAC_NATIVE_LIBRARY);
-			} else if (osName.contains("linux")) {
-				System.loadLibrary(LINUX_NATIVE_LIBRARY);
-			} else {
-				System.loadLibrary(LINUX_NATIVE_LIBRARY);
-			}
+			loadLibrary(NATIVE_LIBRARY_NAME);
 		} catch (UnsatisfiedLinkError e) {
 
 			// Detect custom path for extracting native libraries
 			Path libDir = null;
-			String libraryPath = System.getProperty(LINUX_NATIVE_LIBRARY);
+			String libraryPath = System.getProperty(NATIVE_LIBRARY_NAME);
 			if (libraryPath != null) {
 				libDir = Paths.get(libraryPath);
 				if (!Files.isDirectory(libDir)) {
@@ -123,7 +103,46 @@ public class LCMS4J {
 			}			
 		}
 	}
-		
+
+	private static void loadLibrary(String libName) {
+		try {
+			// Determine the correct file extension for the current OS
+			String osName = System.getProperty("os.name").toLowerCase();
+			String fileExtension = "";
+			if (osName.contains("linux")) {
+				fileExtension = ".so";
+			} else if (osName.contains("windows")) {
+				fileExtension = ".dll";
+			} else if (osName.contains("mac") || osName.contains("darwin")) {
+				fileExtension = ".dylib";
+			} else {
+				throw new IllegalArgumentException("Unsupported OS: " + osName);
+			}
+
+			// Load the library from the JAR
+			String libFileName = "/lib/" + libName + fileExtension;
+			InputStream input = LCMS4J.class.getResourceAsStream(libFileName);
+			if (input == null) {
+				throw new FileNotFoundException("Library file " + libFileName + " not found in JAR");
+			}
+
+			// Create a temporary file to extract the library
+			File tempFile = File.createTempFile(libName, fileExtension);
+			tempFile.deleteOnExit();
+
+			// Copy the library file from the JAR to the temporary file
+			Files.copy(input, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			input.close();
+
+			// Load the library from the temporary file
+			System.load(tempFile.getAbsolutePath());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Failed to load native library", e);
+		}
+	}
+
 	/**
 	 * Extracts shared objects from classpath and loads them, taking care of order loading dependencies.
 	 * 

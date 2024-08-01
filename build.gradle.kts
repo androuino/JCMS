@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.internal.classpath.Instrumented.systemProperty
 
 plugins {
 	java
@@ -38,7 +39,6 @@ val headers = tasks.register<Exec>("headers") {
 
 data class CompilerConfig(
 	val libOs: String,
-	val libPrefix: String,
 	val libSuffix: String,
 	val compilerFlags: String,
 	val compilerInclude: String,
@@ -63,7 +63,6 @@ val jni = tasks.register<Exec>("jni") {
 	val config = when {
 		osName.contains("linux") -> CompilerConfig(
 			libOs = "linux",
-			libPrefix = "lib",
 			libSuffix = ".so",
 			compilerFlags = "-fPIC",
 			compilerInclude = "-I$jdkHome/java-11-openjdk-amd64/include",
@@ -71,7 +70,6 @@ val jni = tasks.register<Exec>("jni") {
 		)
 		osName.contains("windows") -> CompilerConfig(
 			libOs = "windows",
-			libPrefix = "libwin",
 			libSuffix = ".dll",
 			compilerFlags = "-Wl,--add-stdcall-alias",
 			compilerInclude = "-I$jdkHome/include",
@@ -79,7 +77,6 @@ val jni = tasks.register<Exec>("jni") {
 		)
 		osName.contains("mac") || osName.contains("darwin") -> CompilerConfig(
 			libOs = "mac",
-			libPrefix = "libmac",
 			libSuffix = ".dylib",
 			compilerFlags = "-fPIC",
 			compilerInclude = "-I$jdkHome/Home/include",
@@ -88,12 +85,12 @@ val jni = tasks.register<Exec>("jni") {
 		else -> throw IllegalArgumentException("Unsupported OS: $osName")
 	}
 
-	val (libOs, libPrefix, libSuffix, compilerFlags, compilerInclude, compilerInclude2) = config
+	val (libOs, libSuffix, compilerFlags, compilerInclude, compilerInclude2) = config
 
 	libOS = libOs
 	val libMainDir = "src/main/resources/lcms4j/xyz/lib"
 	val libDir = "$libMainDir/$libOs$libArch"
-	val libPath = "$libDir/$libPrefix" + "lcms4j" + libSuffix
+	val libPath = "$libDir/lcms4j$libSuffix"
 
 	inputs.dir("src/jni/cpp")
 
@@ -132,9 +129,9 @@ tasks.register<Copy>("copyLibFile") {
 	}
 	val libDir = "$libMainDir/$libOs$libArch"
 	val libPath = "$libDir/${when (libOs) {
-		"linux" -> "liblcms4j.so"
-		"windows" -> "libwinlcms4j.dll"
-		"mac" -> "libmaclcms4j.dylib"
+		"linux" -> "lcms4j.so"
+		"windows" -> "lcms4j.dll"
+		"mac" -> "lcms4j.dylib"
 		else -> throw IllegalArgumentException("Unsupported OS: $osName")
 	}}"
 	from(libPath)
@@ -161,9 +158,19 @@ tasks.named<Delete>("clean") {
 }
 
 tasks.test {
+	dependsOn("copyLibFile")
 	// Set the java.library.path system property to the directory where the .so file is generated
 	systemProperty("java.library.path", file("src/main/resources/lib").absolutePath)
 	if (file("src/main/resources/lib/$libOS$libArch").exists()) {
 		println("Native library path exists!")
 	}
+}
+
+tasks.jar {
+	// Ensure the native libraries are included in the JAR
+	from("src/main/resources/lib") {
+		into("lib")
+	}
+	// Set the duplicates strategy to EXCLUDE
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
