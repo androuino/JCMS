@@ -1,4 +1,4 @@
-# Java Color Management System (JCMS)
+# Little Color Management System for Java (LCMS4J)
 A Java library for easy management of ICC color transformations. It is basically a wrapper of [LittleCMS](http://www.littlecms.com) C library, with some helper classes.
 Check [JCMS website](http://etordera.github.io/JCMS) for more information.
 
