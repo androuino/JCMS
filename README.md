@@ -32,3 +32,14 @@ You are free to use, modify and distribute this software as you please. If you f
 ## Disclaimer
 
 This software is provided "as is", without any warranty of any kind. If you decide to use it, you do it under your only responsibility. In no way will I be liable for any damage caused by this code.
+
+# UPDATES From this repository
+
+You need to install the lcms2 library
+
+        in my case I used aptitude to search for lcms2
+        once you see the liblcms2-dev, install it
+
+If you had some trouble finding the jni.h header file, you should edit the
+gradle.build file. The location of this header file is normally in the directory
+of the openjdk folder.

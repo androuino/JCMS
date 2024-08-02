@@ -5,7 +5,15 @@ fi
 export GRADLE_COMPILE_ONLY=true
 gradle build
 if [[ $? == 0 ]]; then
-    rsync -ai build/libs/LCMS4J.jar $1
+    if [[ $1 != "" ]]; then
+        rsync -ai build/libs/LCMS4J.jar $1
+    else
+        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+        echo "COMMANDS USAGE:"
+        echo "Usage to copy the generated jar: ./compile copy/jar/to/this/directory/"
+        echo "To gradle clean: ./compile clean"
+        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    fi
     if [[ $? != 0 ]]; then
         echo "************************ COMPILE FAILED ****************************"
     fi
