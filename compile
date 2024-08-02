@@ -1,0 +1,15 @@
+#!/bin/bash
+if [[ $1 == "clean" ]]; then
+    gradle clean
+fi
+export GRADLE_COMPILE_ONLY=true
+gradle build
+if [[ $? == 0 ]]; then
+    rsync -ai build/libs/LCMS4J.jar $1
+    if [[ $? != 0 ]]; then
+        echo "************************ COMPILE FAILED ****************************"
+    fi
+else
+    echo "************************ COMPILE FAILED ****************************"
+    exit
+fi
