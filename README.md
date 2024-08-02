@@ -1,11 +1,10 @@
 # Little Color Management System for Java (LCMS4J)
 A Java library for easy management of ICC color transformations. It is basically a wrapper of [LittleCMS](http://www.littlecms.com) C library, with some helper classes.
-Check [JCMS website](http://etordera.github.io/JCMS) for more information.
 
-*by Enric Tordera (etordera at gmail dot com)*
+*by [xyz](https://josapedmoreno.xyz)*
 
-## Building JCMS
-JCMS uses [gradle](http://gradle.org) as a build system. You will also need:
+## Building LCMS4J
+LCMS4J uses [gradle](http://gradle.org) as a build system. You will also need:
 - Little CMS library (liblcms2-2)
 - GCC compiler for C++ (g++)
 - Java JDK
@@ -14,16 +13,16 @@ Once prerequisites are met, launch the build with:
 
     gradle build
     
-This will generate the library as **JCMS.jar** inside *build/libs* directory.
+This will generate the library as **LCMS4J.jar** inside *build/libs* directory.
 
 ## Native libraries
-Native libraries are embedded into the **JCMS.jar** and are automatically extracted to a temporary folder when needed. When the JVM exits, the temporary folder is deleted.
+Native libraries are embedded into the **LCMS4J.jar** and are automatically extracted to a temporary folder when needed. When the JVM exits, the temporary folder is deleted.
 
-You can force the directory for extraction of native libraries with the system property **JCMS_library_path** (add the parameter -DJCMS_library_path=/path/to/libs when launching the JVM). Custom directory for native libraries is not automatically deleted.
+You can force the directory for extraction of native libraries with the system property **LCMS4J_library_path** (add the parameter -DJCMS_library_path=/path/to/libs when launching the JVM). Custom directory for native libraries is not automatically deleted.
 
 ## Javadoc
 
-For detailed information on the classes of JCMS consult the [javadoc](http://etordera.github.io/JCMS/javadoc/index.html).
+For detailed information on the classes of LCMS4J consult the [javadoc](http://etordera.github.io/JCMS/javadoc/index.html).
 
 ## License
 
